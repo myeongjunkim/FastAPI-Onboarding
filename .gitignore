@@ -9,3 +9,6 @@ __pycache__/
 
 # python version
 .python-version
+
+#env
+.env
