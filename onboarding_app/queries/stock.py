@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from onboarding_app import exceptions, models, schemas
 
 
-def create_user(db: Session, stock: schemas.StockCreate) -> models.Stock:
+def create_stock(db: Session, stock: schemas.StockCreate) -> models.Stock:
     try:
         db_stock = models.Stock(code=stock.code, market=stock.market, name=stock.name)
         db.add(db_stock)

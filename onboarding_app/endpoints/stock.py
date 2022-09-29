@@ -8,21 +8,25 @@ from onboarding_app.queries import stock as stock_query
 stock_router = APIRouter()
 
 
+# TODO: admin user only
 @stock_router.post("/stocks", response_model=schemas.Stock)
 def create_stock(stock: schemas.StockCreate, db: Session = Depends(database.get_db)):
-    return stock_query.create_user(db=db, stock=stock)
+    return stock_query.create_stock(db=db, stock=stock)
 
 
+# TODO: admin user only
 @stock_router.get("/stocks", response_model=list[schemas.Stock])
 def fetch_stocks(db: Session = Depends(database.get_db)):
     return stock_query.get_stocks(db=db)
 
 
+# TODO: admin user only
 @stock_router.get("/stocks/{stock_id}", response_model=schemas.Stock)
 def get_stock(stock_id: int, db: Session = Depends(database.get_db)):
     return stock_query.get_stock(db=db, stock_id=stock_id)
 
 
+# TODO: admin user only
 @stock_router.delete("/stocks/{stock_id}")
 def delete_stock(stock_id: int, db: Session = Depends(database.get_db)):
     stock_query.delete_stock(stock_id=stock_id, db=db)
