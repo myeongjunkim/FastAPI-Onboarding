@@ -1,6 +1,7 @@
 from pydantic import BaseModel, constr, EmailStr, validator
 
 
+# about user
 class User(BaseModel):
     id: int
     username: str
@@ -35,3 +36,21 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+# about stock
+class Stock(BaseModel):
+    id: int
+    code: str
+    market: str
+    name: str
+    price: float
+
+    class Config:
+        orm_mode = True
+
+
+class StockCreate(BaseModel):
+    code: str
+    market: str
+    name: str
