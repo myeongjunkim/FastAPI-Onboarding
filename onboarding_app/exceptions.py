@@ -6,7 +6,7 @@ class DataDoesNotExistError(OnboardingException):
     ...
 
 
-class UserDuplicatedError(OnboardingException):
+class DuplicatedError(OnboardingException):
     ...
 
 
