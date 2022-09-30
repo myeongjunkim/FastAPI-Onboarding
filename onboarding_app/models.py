@@ -1,6 +1,7 @@
+from datetime import datetime
+
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 
 from onboarding_app.database import Base, engine
 
@@ -15,7 +16,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
 
-    wishlist = relationship("Wishlist", back_populates="users")
+    wishlist = relationship("Wishlist", backref="users")
 
 
 class Stock(Base):
@@ -39,9 +40,13 @@ class Wishlist(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     name = Column(String, index=True)
     description = Column(String)
-    created_date = Column(DateTime(timezone=True), server_default=func.now())
-    updated_date = Column(DateTime(timezone=True), onupdate=func.now())
-    is_open = Column(Boolean, default=True)
-    order_method = Column(Integer)
+    created_date = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_date = Column(DateTime(timezone=True), default=datetime.utcnow)
+    is_open = Column(Boolean, default=False)
+    order_method = Column(Integer, default=1)
 
-    user = relationship("User", back_populates="wishlists")
+    user = relationship("User", backref="wishlists")
+
+
+User.__table__.create(bind=engine, checkfirst=True)
+Wishlist.__table__.create(bind=engine, checkfirst=True)
