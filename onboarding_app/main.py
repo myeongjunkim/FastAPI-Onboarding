@@ -4,11 +4,13 @@ from fastapi.responses import JSONResponse
 from onboarding_app import exceptions
 from onboarding_app.database import Base, engine
 from onboarding_app.endpoints.user import user_router
+from onboarding_app.endpoints.wishlist import wishlist_router
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(user_router)
+app.include_router(wishlist_router)
 
 
 @app.exception_handler(exceptions.CredentialsError)
@@ -22,9 +24,9 @@ async def credentialsError_exception_handler(
     )
 
 
-@app.exception_handler(exceptions.UserDuplicatedError)
+@app.exception_handler(exceptions.DuplicatedError)
 async def duplicated_exception_handler(
-    request: Request, exc: exceptions.UserDuplicatedError
+    request: Request, exc: exceptions.DuplicatedError
 ):
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
