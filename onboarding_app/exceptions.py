@@ -16,3 +16,7 @@ class CredentialsError(OnboardingException):
 
 class InactiveUserError(OnboardingException):
     ...
+
+
+class FileOpenError(OnboardingException):
+    ...

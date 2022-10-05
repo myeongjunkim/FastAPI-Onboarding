@@ -35,3 +35,21 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class Stock(BaseModel):
+    id: int
+    code: str
+    market: str
+    name: str
+    price: int
+
+    class Config:
+        orm_mode = True
+
+
+class StockCreate(BaseModel):
+    code: str
+    market: str
+    name: str
+    price: int
