@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from onboarding_app.database import Base, engine
+from onboarding_app.database import Base
 
 
 class User(Base):
@@ -37,16 +37,15 @@ class Wishlist(Base):
     __tablename__ = "wishlists"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    name = Column(String, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    name = Column(String, unique=True, index=True)
     description = Column(String)
     created_date = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_date = Column(DateTime(timezone=True), default=datetime.utcnow)
     is_open = Column(Boolean, default=False)
     order_method = Column(Integer, default=1)
+    order_num = Column(Integer, nullable=True)
 
-    user = relationship("User", backref="wishlists")
 
-
-User.__table__.create(bind=engine, checkfirst=True)
-Wishlist.__table__.create(bind=engine, checkfirst=True)
+# User.__table__.create(bind=engine, checkfirst=True)
+# Wishlist.__table__.create(bind=engine, checkfirst=True)
