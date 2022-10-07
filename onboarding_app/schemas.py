@@ -47,7 +47,14 @@ class Stock(BaseModel):
     price: int
 
 
-class WishList(BaseModel):
+class StockCreate(BaseModel):
+    code: str
+    market: str
+    name: str
+    price: int
+
+
+class Wishlist(BaseModel):
     id: int
     user_id: int
     name: str
@@ -56,18 +63,12 @@ class WishList(BaseModel):
     updated_date: str
     is_open: bool
     order_method: int
+    order_num: int
 
     class Config:
         orm_mode = True
 
 
-class StockCreate(BaseModel):
-    code: str
-    market: str
-    name: str
-    price: int
-
-
-class WishListCreate(BaseModel):
+class WishlistCreate(BaseModel):
     name: str
     description: str
