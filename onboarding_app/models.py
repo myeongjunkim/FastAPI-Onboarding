@@ -1,6 +1,14 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from onboarding_app.database import Base
@@ -38,7 +46,9 @@ class Wishlist(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    name = Column(String, unique=True, index=True)
+    name = Column(String, index=True)
+    __table_args__ = (UniqueConstraint("user_id", "name", name="user_id__name_unique"),)
+
     description = Column(String)
     created_date = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_date = Column(DateTime(timezone=True), default=datetime.utcnow)
