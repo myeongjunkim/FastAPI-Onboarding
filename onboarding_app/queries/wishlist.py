@@ -27,9 +27,22 @@ def create_wishlist(
     return db_wishlist
 
 
-def fetch_wishlists(db: Session, current_user: schemas.User) -> models.Wishlist:
+def fetch_wishlists(db: Session, current_user: schemas.User) -> list[models.Wishlist]:
     return (
         db.query(models.Wishlist)
         .filter(models.Wishlist.user_id == current_user.id)
         .all()
     )
+
+
+def get_wishlist(
+    db: Session, wishlist_id: int, current_user: schemas.User
+) -> models.Wishlist:
+    db_stock = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
+    if not db_stock.first():
+        raise exceptions.DataDoesNotExistError
+    elif db_stock.first().is_open:
+        return db_stock.first()
+    elif db_stock.first().id != current_user.id:
+        raise exceptions.PermissionDeniedError
+    return db_stock.first()

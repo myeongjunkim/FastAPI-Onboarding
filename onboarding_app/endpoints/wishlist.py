@@ -30,3 +30,15 @@ def fetch_wishlists(
 ):
     db_wishlists = wishlist_query.fetch_wishlists(db=db, current_user=current_user)
     return jsonable_encoder(db_wishlists)
+
+
+@wishlist_router.get("/wishlists/{wishlist_id}", response_model=schemas.Wishlist)
+def get_wishlist(
+    wishlist_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    db_wishlist = wishlist_query.get_wishlist(
+        db=db, wishlist_id=wishlist_id, current_user=current_user
+    )
+    return jsonable_encoder(db_wishlist)
