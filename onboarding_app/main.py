@@ -44,9 +44,9 @@ async def data_does_not_exist_exception_handler(
     )
 
 
-@app.exception_handler(exceptions.DataDoesNotExistError)
+@app.exception_handler(exceptions.InactiveUserError)
 async def inactive_user_exception_handler(
-    request: Request, exc: exceptions.DataDoesNotExistError
+    request: Request, exc: exceptions.InactiveUserError
 ):
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
