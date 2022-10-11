@@ -37,10 +37,6 @@ class Stock(Base):
     price = Column(Integer, index=True, default=0)
 
 
-User.__table__.create(bind=engine, checkfirst=True)
-Stock.__table__.create(bind=engine, checkfirst=True)
-
-
 class Wishlist(Base):
     __tablename__ = "wishlists"
 
@@ -55,7 +51,3 @@ class Wishlist(Base):
     is_open = Column(Boolean, default=False)
     order_method = Column(Integer, default=1)
     order_num = Column(Integer, nullable=True)
-
-
-# User.__table__.create(bind=engine, checkfirst=True)
-# Wishlist.__table__.create(bind=engine, checkfirst=True)
