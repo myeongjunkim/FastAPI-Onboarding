@@ -11,7 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from onboarding_app.database import Base
+from onboarding_app.database import Base, engine
 
 
 class User(Base):
@@ -51,3 +51,8 @@ class Wishlist(Base):
     is_open = Column(Boolean, default=False)
     order_method = Column(Integer, default=1)
     order_num = Column(Integer, nullable=True)
+
+
+User.__table__.create(bind=engine, checkfirst=True)
+Stock.__table__.create(bind=engine, checkfirst=True)
+Wishlist.__table__.create(bind=engine, checkfirst=True)
