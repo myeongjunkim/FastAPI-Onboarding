@@ -35,12 +35,6 @@ def fetch_wishlists(
     offset: str,
 ) -> list[models.Wishlist]:
 
-    # TODO: add pagination
-    if limit is None:
-        limit = "10"
-    if offset is None:
-        offset = "0"
-
     db_wishlists = db.query(models.Wishlist).filter(
         models.Wishlist.user_id == current_user.id
     )
