@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
@@ -27,8 +27,13 @@ def create_wishlist(
 def fetch_wishlists(
     db: Session = Depends(database.get_db),
     current_user: schemas.User = Depends(dependencies.get_current_user),
+    order_by: str = Query(default="created"),
+    limit: str = Query(default="10"),
+    offset: str = Query(default="0"),
 ):
-    db_wishlists = wishlist_query.fetch_wishlists(db=db, current_user=current_user)
+    db_wishlists = wishlist_query.fetch_wishlists(
+        db=db, current_user=current_user, order_by=order_by, limit=limit, offset=offset
+    )
     return jsonable_encoder(db_wishlists)
 
 

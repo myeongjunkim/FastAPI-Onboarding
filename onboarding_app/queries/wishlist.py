@@ -27,12 +27,48 @@ def create_wishlist(
     return db_wishlist
 
 
-def fetch_wishlists(db: Session, current_user: schemas.User) -> list[models.Wishlist]:
-    return (
-        db.query(models.Wishlist)
-        .filter(models.Wishlist.user_id == current_user.id)
-        .all()
+def fetch_wishlists(
+    db: Session,
+    current_user: schemas.User,
+    order_by: str,
+    limit: str,
+    offset: str,
+) -> list[models.Wishlist]:
+
+    # TODO: add pagination
+    if limit is None:
+        limit = "10"
+    if offset is None:
+        offset = "0"
+
+    db_wishlists = db.query(models.Wishlist).filter(
+        models.Wishlist.user_id == current_user.id
     )
+
+    if order_by == "created":
+        return (
+            db_wishlists.order_by(models.Wishlist.created_date.desc())
+            .limit(limit)
+            .offset(offset)
+            .all()
+        )
+    elif order_by == "updated":
+        return (
+            db_wishlists.order_by(models.Wishlist.updated_date.desc())
+            .limit(limit)
+            .offset(offset)
+            .all()
+        )
+    elif order_by == "ordered":
+        # TODO: add order-by order_num
+        return (
+            db_wishlists.order_by(models.Wishlist.order_num.desc())
+            .limit(limit)
+            .offset(offset)
+            .all()
+        )
+    else:
+        raise exceptions.InvalidQueryError
 
 
 def get_wishlist(
