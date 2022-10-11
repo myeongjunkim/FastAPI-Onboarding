@@ -22,12 +22,15 @@ def get_users(db: Session, offset: int = 0, limit: int = 100) -> list[models.Use
     return db.query(models.User).offset(offset).limit(limit).all()
 
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(
+    db: Session, user: schemas.UserCreate, is_admin: bool = False
+) -> models.User:
     hashed_password = utils.get_password_hash(user.password1)
     try:
         db_user = models.User(
             username=user.username,
             email=user.email,
+            is_admin=is_admin,
             hashed_password=hashed_password,
         )
         db.add(db_user)

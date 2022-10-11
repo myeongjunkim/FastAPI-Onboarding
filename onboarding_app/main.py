@@ -50,3 +50,13 @@ async def inactive_user_exception_handler(
         status_code=status.HTTP_400_BAD_REQUEST,
         content="Inactive user",
     )
+
+
+@app.exception_handler(exceptions.PermissionDeniedError)
+async def unauthorized_user_exception_handler(
+    request: Request, exc: exceptions.PermissionDeniedError
+):
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content="Unauthorized user",
+    )

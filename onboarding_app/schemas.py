@@ -5,8 +5,9 @@ class User(BaseModel):
     id: int
     username: str
     email: EmailStr
-    is_active: bool
     hashed_password = str
+    is_active: bool
+    is_admin: bool
 
     class Config:
         orm_mode = True
@@ -30,6 +31,7 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
     is_active: bool
+    is_admin: bool
 
 
 class Token(BaseModel):

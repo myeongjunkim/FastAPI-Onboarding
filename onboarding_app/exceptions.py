@@ -20,3 +20,7 @@ class InactiveUserError(OnboardingException):
 
 class FileOpenError(OnboardingException):
     ...
+
+
+class PermissionDeniedError(OnboardingException):
+    ...

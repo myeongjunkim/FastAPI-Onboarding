@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from onboarding_app import database, dependencies, schemas, utils
+from onboarding_app import database, dependencies, models, schemas, utils
 from onboarding_app.config import settings
 from onboarding_app.queries import user as user_query
 
@@ -20,7 +20,10 @@ def signup(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
 
 @user_router.get("/users", response_model=list[schemas.User])
 def fetch_users(
-    offset: int = 0, limit: int = 100, db: Session = Depends(database.get_db)
+    offset: int = 0,
+    limit: int = 100,
+    db: Session = Depends(database.get_db),
+    is_admin: bool = Depends(dependencies.is_admin),
 ):
     return user_query.get_users(db, offset=offset, limit=limit)
 
@@ -41,6 +44,7 @@ async def get_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+# TODO: 추후 필요성 판단후 기능 삭제
 @user_router.get("/users/me/", response_model=schemas.User)
 async def read_users_me(
     current_user: schemas.User = Depends(dependencies.get_current_user),
@@ -49,5 +53,9 @@ async def read_users_me(
 
 
 @user_router.get("/users/{user_id}", response_model=schemas.User)
-def get_user(user_id: int, db: Session = Depends(database.get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(database.get_db),
+    is_admin: models.User = Depends(dependencies.is_admin),
+):
     return user_query.get_user(db, user_id=user_id)
