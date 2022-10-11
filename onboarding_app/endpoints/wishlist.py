@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from onboarding_app import database, dependencies, schemas
@@ -47,3 +48,34 @@ def get_wishlist(
         db=db, wishlist_id=wishlist_id, current_user=current_user
     )
     return jsonable_encoder(db_wishlist)
+
+
+@wishlist_router.put("/wishlists/{wishlist_id}", response_model=schemas.Wishlist)
+def update_wishlist(
+    wishlist_id: int,
+    wishlist: schemas.WishlistUpdate,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    db_wishlist = wishlist_query.update_wishlist(
+        db=db,
+        wishlist_id=wishlist_id,
+        current_user=current_user,
+        wishlist=wishlist,
+    )
+    return jsonable_encoder(db_wishlist)
+
+
+@wishlist_router.delete("/wishlists/{wishlist_id}", response_model=schemas.Wishlist)
+def delete_wishlist(
+    wishlist_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    wishlist_query.delete_wishlist(
+        db=db, wishlist_id=wishlist_id, current_user=current_user
+    )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Wishlist deleted successfully"},
+    )

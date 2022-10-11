@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, constr, EmailStr, validator
 
 
@@ -72,3 +74,8 @@ class Wishlist(BaseModel):
 class WishlistCreate(BaseModel):
     name: str
     description: str
+
+
+class WishlistUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]

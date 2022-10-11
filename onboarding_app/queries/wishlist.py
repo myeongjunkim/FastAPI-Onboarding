@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -68,11 +70,46 @@ def fetch_wishlists(
 def get_wishlist(
     db: Session, wishlist_id: int, current_user: schemas.User
 ) -> models.Wishlist:
-    db_stock = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
-    if not db_stock.first():
+    db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
+    if not db_wishlist.first():
         raise exceptions.DataDoesNotExistError
-    elif db_stock.first().is_open:
-        return db_stock.first()
-    elif db_stock.first().id != current_user.id:
+    elif db_wishlist.first().is_open:
+        return db_wishlist.first()
+    elif db_wishlist.first().user_id != current_user.id:
+        print(db_wishlist.first().user_id, current_user.id)
         raise exceptions.PermissionDeniedError
-    return db_stock.first()
+    return db_wishlist.first()
+
+
+def update_wishlist(
+    db: Session,
+    wishlist_id: int,
+    current_user: schemas.User,
+    wishlist: schemas.WishlistUpdate,
+) -> models.Wishlist:
+    db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
+    if not db_wishlist.first():
+        raise exceptions.DataDoesNotExistError
+    elif db_wishlist.first().user_id != current_user.id:
+        raise exceptions.PermissionDeniedError
+    try:
+        db_wishlist.update(wishlist.dict(exclude_unset=True))
+        db_wishlist.first().updated_date = datetime.utcnow()
+        db.commit()
+        db.refresh(db_wishlist.first())
+    except IntegrityError:
+        raise exceptions.DuplicatedError
+    return db_wishlist.first()
+
+
+def delete_wishlist(
+    db: Session, wishlist_id: int, current_user: schemas.User
+) -> models.Wishlist:
+    db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
+    if not db_wishlist.first():
+        raise exceptions.DataDoesNotExistError
+    elif db_wishlist.first().user_id != current_user.id:
+        raise exceptions.PermissionDeniedError
+    db_wishlist.delete()
+    db.commit()
+    return db_wishlist.first()
