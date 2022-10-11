@@ -62,3 +62,13 @@ async def unauthorized_user_exception_handler(
         status_code=status.HTTP_401_UNAUTHORIZED,
         content="Unauthorized user",
     )
+
+
+@app.exception_handler(exceptions.InvalidQueryError)
+async def invalid_query__exception_handler(
+    request: Request, exc: exceptions.InvalidQueryError
+):
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content="Invalid Query",
+    )

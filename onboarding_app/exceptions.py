@@ -24,3 +24,7 @@ class FileOpenError(OnboardingException):
 
 class PermissionDeniedError(OnboardingException):
     ...
+
+
+class InvalidQueryError(OnboardingException):
+    ...
