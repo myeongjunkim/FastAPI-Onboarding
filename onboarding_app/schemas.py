@@ -79,3 +79,5 @@ class WishlistCreate(BaseModel):
 class WishlistUpdate(BaseModel):
     name: Optional[str]
     description: Optional[str]
+    order_method: Optional[int] = 1
+    # order_method ->  생성순(created):1, 업데이트순(updated):0, 사용자화(ordered):-1
