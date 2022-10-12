@@ -79,3 +79,16 @@ def delete_wishlist(
         status_code=status.HTTP_200_OK,
         content={"message": "Wishlist deleted successfully"},
     )
+
+
+@wishlist_router.put("/wishlists/{wishlist_id}/order", response_model=schemas.Wishlist)
+def change_wishlist_order(
+    wishlist_id: int,
+    hope_order: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    updated_wishlist = wishlist_query.change_wishlist_order(
+        db=db, wishlist_id=wishlist_id, current_user=current_user, hope_order=hope_order
+    )
+    return jsonable_encoder(updated_wishlist)
