@@ -52,5 +52,13 @@ def create_dumy_user():
         password2="reg1",
     )
 
+    reg2 = schemas.UserCreate(
+        username="reg2",
+        email="reg2@example.com",
+        password1="reg2",
+        password2="reg2",
+    )
+
     user_query.create_user(db=TestingSessionLocal(), user=admin, is_admin=True)
     user_query.create_user(db=TestingSessionLocal(), user=reg1)
+    user_query.create_user(db=TestingSessionLocal(), user=reg2)

@@ -8,16 +8,16 @@ def test_signup_success():
     signup_response = client.post(
         "/users/signup",
         json={
-            "username": "reg2",
-            "email": "reg2@example.com",
-            "password1": "reg2",
-            "password2": "reg2",
+            "username": "reg3",
+            "email": "reg3@example.com",
+            "password1": "reg3",
+            "password2": "reg3",
         },
     )
 
     # Then
     assert signup_response.status_code == 200
-    assert signup_response.json()["username"] == "reg2"
+    assert signup_response.json()["username"] == "reg3"
 
 
 def test_login_success():
@@ -53,7 +53,7 @@ def test_only_admin_can_fetch_users():
 
     # Then
     assert response_users_by_admin.status_code == 200
-    assert len(response_users_by_admin.json()) == 2
+    assert len(response_users_by_admin.json()) == 3
     assert response_users_by_reg1.status_code == 401
 
 

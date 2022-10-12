@@ -18,3 +18,11 @@ def obtain_token_reg1():
         data={"username": "reg1"}, expires_delta=access_token_expires
     )
     return access_token
+
+
+def obtain_token_reg2():
+    access_token_expires = timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS)
+    access_token = utils.create_access_token(
+        data={"username": "reg2"}, expires_delta=access_token_expires
+    )
+    return access_token
