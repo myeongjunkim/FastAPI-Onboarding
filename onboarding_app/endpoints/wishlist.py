@@ -9,7 +9,6 @@ from onboarding_app.queries import wishlist as wishlist_query
 wishlist_router = APIRouter(tags=["wishlist"])
 
 
-# TODO: login user only
 @wishlist_router.post("/wishlists", response_model=schemas.Wishlist)
 def create_wishlist(
     wishlist: schemas.WishlistCreate,
