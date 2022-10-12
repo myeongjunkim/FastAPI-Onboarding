@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from onboarding_app import database, dependencies, schemas
 from onboarding_app.queries import wishlist as wishlist_query
 
-wishlist_router = APIRouter()
+wishlist_router = APIRouter(tags=["wishlist"])
 
 
 # TODO: login user only
