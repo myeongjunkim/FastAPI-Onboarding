@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from onboarding_app import database, dependencies, schemas
+from onboarding_app import database, dependencies, exceptions, models, schemas
 from onboarding_app.queries import wishlist as wishlist_query
 
 wishlist_router = APIRouter(tags=["wishlist"])
@@ -27,12 +27,21 @@ def create_wishlist(
 def fetch_wishlists(
     db: Session = Depends(database.get_db),
     current_user: schemas.User = Depends(dependencies.get_current_user),
-    order_by: str = Query(default="created"),
-    limit: str = Query(default="10"),
-    offset: str = Query(default="0"),
+    order_by: str = Query(default="created_at"),
+    desc: bool = Query(default=False),
+    limit: int = Query(default=10),
+    offset: int = Query(default=0),
 ):
+    if order_by not in models.Wishlist.__table__.columns.keys():
+        raise exceptions.InvalidQueryError
+
     db_wishlists = wishlist_query.fetch_wishlists(
-        db=db, current_user=current_user, order_by=order_by, limit=limit, offset=offset
+        db=db,
+        current_user=current_user,
+        order_by=order_by,
+        desc=desc,
+        limit=limit,
+        offset=offset,
     )
     return jsonable_encoder(db_wishlists)
 

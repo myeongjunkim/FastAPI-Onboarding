@@ -33,29 +33,22 @@ def fetch_wishlists(
     db: Session,
     current_user: schemas.User,
     order_by: str,
-    limit: str,
-    offset: str,
+    desc: bool,
+    limit: int,
+    offset: int,
 ) -> list[models.Wishlist]:
 
-    db_wishlists = db.query(models.Wishlist).filter(
-        models.Wishlist.user_id == current_user.id
+    order_column = models.Wishlist.__table__.columns.get(order_by)
+    if desc:
+        order_column = order_column.desc()
+    return (
+        db.query(models.Wishlist)
+        .filter(models.Wishlist.user_id == current_user.id)
+        .order_by(order_column)
+        .limit(limit)
+        .offset(offset)
+        .all()
     )
-
-    order_method = {
-        "created": models.Wishlist.created_at.desc(),
-        "updated": models.Wishlist.updated_at.desc(),
-        "ordered": models.Wishlist.order_num,
-    }
-
-    try:
-        return (
-            db_wishlists.order_by(order_method[order_by])
-            .limit(limit)
-            .offset(offset)
-            .all()
-        )
-    except KeyError:
-        raise exceptions.InvalidQueryError
 
 
 def get_wishlist(
@@ -102,15 +95,20 @@ def delete_wishlist(
     elif db_wishlist.first().user_id != current_user.id:
         raise exceptions.PermissionDeniedError
     db_wishlist.delete()
+    db.commit()
+    _reorder_order_num(db, current_user.id)
+    return db_wishlist.first()
+
+
+def _reorder_order_num(db: Session, user_id: int):
     users_db_wishlist = (
         db.query(models.Wishlist)
-        .filter(models.Wishlist.user_id == current_user.id)
+        .filter(models.Wishlist.user_id == user_id)
         .order_by(models.Wishlist.order_num)
     )
     for i, wishlist in enumerate(users_db_wishlist):
         wishlist.order_num = i
     db.commit()
-    return db_wishlist.first()
 
 
 def change_wishlist_order(
