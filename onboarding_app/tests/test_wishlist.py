@@ -193,4 +193,4 @@ def test_change_wishlist_order():
 
     # Then
     assert wishlist_order_response.status_code == 200
-    assert wishlist_order_response.json()["order_num"] == 2
+    assert wishlist_order_response.json()["order_num"] == reg1.id
