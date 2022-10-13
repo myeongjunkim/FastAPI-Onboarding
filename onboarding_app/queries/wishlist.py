@@ -41,29 +41,20 @@ def fetch_wishlists(
         models.Wishlist.user_id == current_user.id
     )
 
-    if order_by == "created":
+    order_method = {
+        "created": models.Wishlist.created_at.desc(),
+        "updated": models.Wishlist.updated_at.desc(),
+        "ordered": models.Wishlist.order_num,
+    }
+
+    try:
         return (
-            db_wishlists.order_by(models.Wishlist.created_at.desc())
+            db_wishlists.order_by(order_method[order_by])
             .limit(limit)
             .offset(offset)
             .all()
         )
-    elif order_by == "updated":
-        return (
-            db_wishlists.order_by(models.Wishlist.updated_at.desc())
-            .limit(limit)
-            .offset(offset)
-            .all()
-        )
-    elif order_by == "ordered":
-        # TODO: add order-by order_num
-        return (
-            db_wishlists.order_by(models.Wishlist.order_num)
-            .limit(limit)
-            .offset(offset)
-            .all()
-        )
-    else:
+    except KeyError:
         raise exceptions.InvalidQueryError
 
 

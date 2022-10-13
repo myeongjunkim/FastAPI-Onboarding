@@ -61,8 +61,8 @@ class Wishlist(BaseModel):
     user_id: int
     name: str
     description: str
-    created_date: str
-    updated_date: str
+    created_at: str
+    updated_at: str
     is_open: bool
     order_num: int
 
