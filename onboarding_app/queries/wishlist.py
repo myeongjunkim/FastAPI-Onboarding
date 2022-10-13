@@ -129,25 +129,38 @@ def change_wishlist_order(
     elif hope_order < 0 or hope_order >= users_db_wishlist.count():
         raise exceptions.InvalidQueryError
 
-    if hope_order > db_wishlist.first().order_num:
-        db.query(models.Wishlist).filter(
-            models.Wishlist.order_num > db_wishlist.first().order_num,
-            models.Wishlist.order_num <= hope_order,
-            models.Wishlist.user_id == current_user.id,
-        ).update(
-            {models.Wishlist.order_num: models.Wishlist.order_num - 1},
-            synchronize_session=False,
-        )
+    origin_order = db_wishlist.first().order_num
+    if hope_order > origin_order:
+        _update_upper_num_order(db, current_user, origin_order, hope_order)
 
-    elif hope_order < db_wishlist.first().order_num:
-        db.query(models.Wishlist).filter(
-            models.Wishlist.order_num < db_wishlist.first().order_num,
-            models.Wishlist.order_num >= hope_order,
-            models.Wishlist.user_id == current_user.id,
-        ).update(
-            {models.Wishlist.order_num: models.Wishlist.order_num + 1},
-            synchronize_session=False,
-        )
+    elif hope_order < origin_order:
+        _update_lower_num_order(db, current_user, origin_order, hope_order)
     db_wishlist.first().order_num = hope_order
     db.commit()
     return db_wishlist.first()
+
+
+def _update_upper_num_order(
+    db: Session, current_user: schemas.User, origin_order: int, hope_order: int
+):
+    db.query(models.Wishlist).filter(
+        models.Wishlist.order_num > origin_order,
+        models.Wishlist.order_num <= hope_order,
+        models.Wishlist.user_id == current_user.id,
+    ).update(
+        {models.Wishlist.order_num: models.Wishlist.order_num - 1},
+        synchronize_session=False,
+    )
+
+
+def _update_lower_num_order(
+    db: Session, current_user: schemas.User, origin_order: int, hope_order: int
+):
+    db.query(models.Wishlist).filter(
+        models.Wishlist.order_num < origin_order,
+        models.Wishlist.order_num >= hope_order,
+        models.Wishlist.user_id == current_user.id,
+    ).update(
+        {models.Wishlist.order_num: models.Wishlist.order_num + 1},
+        synchronize_session=False,
+    )
