@@ -46,8 +46,8 @@ class Wishlist(Base):
     __table_args__ = (UniqueConstraint("user_id", "name", name="user_id__name_unique"),)
 
     description = Column(String)
-    created_date = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_date = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     is_open = Column(Boolean, default=False)
     order_num = Column(Integer, nullable=True)
 

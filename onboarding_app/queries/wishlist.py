@@ -43,14 +43,14 @@ def fetch_wishlists(
 
     if order_by == "created":
         return (
-            db_wishlists.order_by(models.Wishlist.created_date.desc())
+            db_wishlists.order_by(models.Wishlist.created_at.desc())
             .limit(limit)
             .offset(offset)
             .all()
         )
     elif order_by == "updated":
         return (
-            db_wishlists.order_by(models.Wishlist.updated_date.desc())
+            db_wishlists.order_by(models.Wishlist.updated_at.desc())
             .limit(limit)
             .offset(offset)
             .all()
@@ -105,7 +105,7 @@ def update_wishlist(
         raise exceptions.PermissionDeniedError
     try:
         db_wishlist.update(wishlist.dict(exclude_unset=True))
-        db_wishlist.first().updated_date = datetime.utcnow()
+        db_wishlist.first().updated_at = datetime.utcnow()
         db.commit()
         db.refresh(db_wishlist.first())
     except IntegrityError:
