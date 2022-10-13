@@ -62,7 +62,6 @@ def test_wishlists_get_success():
     # Given
     db = TestingSessionLocal()
     reg1_token = obtain_token_reg1()
-    reg2_token = obtain_token_reg2()
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
@@ -80,16 +79,34 @@ def test_wishlists_get_success():
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
-    wishlist_response_by_other_user = client.get(
-        f"/wishlists/{wishlist.id}",
-        headers={"Authorization": "Bearer " + reg2_token},
-    )
-
     # Then
     assert wishlist_response_by_reg1.status_code == 200
     assert wishlist_response_by_reg1.json()["name"] == "wishlist1"
     assert wishlist_response_by_reg1.json()["user_id"] == 2
 
+
+def test_wishlists_get_fail_with_other_user_token():
+    # Given
+    other_user_token = obtain_token_reg2()
+
+    db = TestingSessionLocal()
+    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = wishlist_query.create_wishlist(
+        db=db,
+        current_user=reg1,
+        wishlist=schemas.WishlistCreate(
+            name="wishlist1",
+            description="wishlist1 description",
+        ),
+    )
+
+    # When
+    wishlist_response_by_other_user = client.get(
+        f"/wishlists/{wishlist.id}",
+        headers={"Authorization": "Bearer " + other_user_token},
+    )
+
+    # Then
     assert wishlist_response_by_other_user.status_code == 401
 
 
@@ -97,7 +114,6 @@ def test_wishlists_update_success():
     # Given
     db = TestingSessionLocal()
     reg1_token = obtain_token_reg1()
-    reg2_token = obtain_token_reg2()
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
@@ -119,15 +135,6 @@ def test_wishlists_update_success():
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
-    wishlist_response_by_other_uesr = client.put(
-        f"/wishlists/{wishlist.id}",
-        json={
-            "name": "wishlist1 updated",
-            "description": "wishlist1 description updated",
-        },
-        headers={"Authorization": "Bearer " + reg2_token},
-    )
-
     # Then
     assert wishlist_response_by_reg1.status_code == 200
     assert wishlist_response_by_reg1.json()["name"] == "wishlist1 updated"
@@ -136,14 +143,11 @@ def test_wishlists_update_success():
         == "wishlist1 description updated"
     )
 
-    assert wishlist_response_by_other_uesr.status_code == 401
-
 
 def test_wishlists_delete_success():
     # Given
     db = TestingSessionLocal()
     reg1_token = obtain_token_reg1()
-    reg2_token = obtain_token_reg2()
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
@@ -155,19 +159,48 @@ def test_wishlists_delete_success():
     )
 
     # When
-    wishlist_response_by_reg2 = client.delete(
-        f"/wishlists/{wishlist.id}",
-        headers={"Authorization": "Bearer " + reg2_token},
-    )
-
     wishlist_response_by_other_uesr = client.delete(
         f"/wishlists/{wishlist.id}",
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
     # Then
-    assert wishlist_response_by_reg2.status_code == 401
     assert wishlist_response_by_other_uesr.status_code == 200
+
+
+def test_wishlists_udate_and_delete_fail_with_other_user_token():
+
+    # Given
+    other_user_token = obtain_token_reg2()
+
+    db = TestingSessionLocal()
+    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = wishlist_query.create_wishlist(
+        db=db,
+        current_user=reg1,
+        wishlist=schemas.WishlistCreate(
+            name="wishlist1", description="wishlist1 description"
+        ),
+    )
+
+    # When
+    wishlist_update_response_by_other_uesr = client.put(
+        f"/wishlists/{wishlist.id}",
+        json={
+            "name": "wishlist1 updated",
+            "description": "wishlist1 description updated",
+        },
+        headers={"Authorization": "Bearer " + other_user_token},
+    )
+
+    wishlist_delete_response_by_other_uesr = client.delete(
+        f"/wishlists/{wishlist.id}",
+        headers={"Authorization": "Bearer " + other_user_token},
+    )
+
+    # Then
+    assert wishlist_update_response_by_other_uesr.status_code == 401
+    assert wishlist_delete_response_by_other_uesr.status_code == 401
 
 
 def test_change_wishlist_order():
