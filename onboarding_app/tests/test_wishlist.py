@@ -165,11 +165,7 @@ def test_wishlists_delete_success():
 
     # Then
     assert wishlist_response_by_reg2.status_code == 401
-
     assert wishlist_response_by_reg1.status_code == 200
-    assert (
-        wishlist_response_by_reg1.json()["message"] == "Wishlist deleted successfully"
-    )
 
 
 def test_change_wishlist_order():
