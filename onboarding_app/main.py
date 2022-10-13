@@ -30,7 +30,7 @@ async def duplicated_exception_handler(
 ):
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content="User info is duplicated",
+        content="Data is duplicated",
     )
 
 
