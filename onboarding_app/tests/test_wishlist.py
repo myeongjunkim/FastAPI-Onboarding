@@ -185,14 +185,25 @@ def test_change_wishlist_order():
                 description=f"wishlist{i} description",
             ),
         )
-    db_wishlist = get_wishlist_by_name(db=db, name="wishlist3", current_user=reg1)
+    db_wishlist = get_wishlist_by_name(db=db, name="wishlist2", current_user=reg1)
 
     # When
     wishlist_order_response = client.put(
-        f"/wishlists/{db_wishlist.id}/order?hope_order=2",
+        f"/wishlists/{db_wishlist.id}/order?hope_order=5",
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
     # Then
     assert wishlist_order_response.status_code == 200
-    assert wishlist_order_response.json()["order_num"] == 2
+    assert wishlist_order_response.json()["order_num"] == 5
+
+    for i in range(10):
+        db_wishlist = get_wishlist_by_name(
+            db=db, name=f"wishlist{i}", current_user=reg1
+        )
+        if i < 2 or i > 5:
+            assert db_wishlist.order_num == i
+        elif i == 2:
+            assert db_wishlist.order_num == 5
+        else:
+            assert db_wishlist.order_num == i - 1
