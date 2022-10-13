@@ -80,7 +80,7 @@ def test_wishlists_get_success():
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
-    wishlist_response_by_reg2 = client.get(
+    wishlist_response_by_other_user = client.get(
         f"/wishlists/{wishlist.id}",
         headers={"Authorization": "Bearer " + reg2_token},
     )
@@ -90,7 +90,7 @@ def test_wishlists_get_success():
     assert wishlist_response_by_reg1.json()["name"] == "wishlist1"
     assert wishlist_response_by_reg1.json()["user_id"] == 2
 
-    assert wishlist_response_by_reg2.status_code == 401
+    assert wishlist_response_by_other_user.status_code == 401
 
 
 def test_wishlists_update_success():
@@ -119,7 +119,7 @@ def test_wishlists_update_success():
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
-    wishlist_response_by_reg2 = client.put(
+    wishlist_response_by_other_uesr = client.put(
         f"/wishlists/{wishlist.id}",
         json={
             "name": "wishlist1 updated",
@@ -136,7 +136,7 @@ def test_wishlists_update_success():
         == "wishlist1 description updated"
     )
 
-    assert wishlist_response_by_reg2.status_code == 401
+    assert wishlist_response_by_other_uesr.status_code == 401
 
 
 def test_wishlists_delete_success():
@@ -160,14 +160,14 @@ def test_wishlists_delete_success():
         headers={"Authorization": "Bearer " + reg2_token},
     )
 
-    wishlist_response_by_reg1 = client.delete(
+    wishlist_response_by_other_uesr = client.delete(
         f"/wishlists/{wishlist.id}",
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
     # Then
     assert wishlist_response_by_reg2.status_code == 401
-    assert wishlist_response_by_reg1.status_code == 200
+    assert wishlist_response_by_other_uesr.status_code == 200
 
 
 def test_change_wishlist_order():
