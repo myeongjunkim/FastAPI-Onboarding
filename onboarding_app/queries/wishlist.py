@@ -1,9 +1,18 @@
 from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query, Session
 
 from onboarding_app import exceptions, models, schemas
+
+
+def _check_wishlist_exist_and_access_permission(
+    db_wishlist: Query, current_user: schemas.User
+):
+    if not db_wishlist.first():
+        raise exceptions.DataDoesNotExistError
+    elif db_wishlist.first().user_id != current_user.id:
+        raise exceptions.PermissionDeniedError
 
 
 def create_wishlist(
@@ -72,10 +81,7 @@ def update_wishlist(
     wishlist: schemas.WishlistUpdate,
 ) -> models.Wishlist:
     db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
-    if not db_wishlist.first():
-        raise exceptions.DataDoesNotExistError
-    elif db_wishlist.first().user_id != current_user.id:
-        raise exceptions.PermissionDeniedError
+    _check_wishlist_exist_and_access_permission(db_wishlist, current_user)
     try:
         db_wishlist.update(wishlist.dict(exclude_unset=True))
         db_wishlist.first().updated_at = datetime.utcnow()
@@ -90,10 +96,7 @@ def delete_wishlist(
     db: Session, wishlist_id: int, current_user: schemas.User
 ) -> models.Wishlist:
     db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
-    if not db_wishlist.first():
-        raise exceptions.DataDoesNotExistError
-    elif db_wishlist.first().user_id != current_user.id:
-        raise exceptions.PermissionDeniedError
+    _check_wishlist_exist_and_access_permission(db_wishlist, current_user)
     db_wishlist.delete()
     db.commit()
     _reorder_order_num(db, current_user.id)
@@ -122,11 +125,8 @@ def change_wishlist_order(
         models.Wishlist.user_id == current_user.id
     )
 
-    if not db_wishlist.first():
-        raise exceptions.DataDoesNotExistError
-    elif db_wishlist.first().user_id != current_user.id:
-        raise exceptions.PermissionDeniedError
-    elif hope_order < 0 or hope_order >= users_db_wishlist.count():
+    _check_wishlist_exist_and_access_permission(db_wishlist, current_user)
+    if hope_order < 0 or hope_order >= users_db_wishlist.count():
         raise exceptions.InvalidQueryError
 
     origin_order = db_wishlist.first().order_num
