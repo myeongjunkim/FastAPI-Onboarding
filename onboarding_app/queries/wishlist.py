@@ -72,17 +72,6 @@ def get_wishlist(
     return db_wishlist.first()
 
 
-def get_wishlist_by_name(
-    db: Session, name: str, current_user: schemas.User
-) -> models.Wishlist:
-    db_wishlist = db.query(models.Wishlist).filter(
-        models.Wishlist.user_id == current_user.id, models.Wishlist.name == name
-    )
-    if not db_wishlist.first():
-        raise exceptions.DataDoesNotExistError
-    return db_wishlist.first()
-
-
 def update_wishlist(
     db: Session,
     wishlist_id: int,

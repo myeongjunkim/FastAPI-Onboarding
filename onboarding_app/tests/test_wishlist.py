@@ -1,7 +1,11 @@
 from onboarding_app import schemas
 from onboarding_app.queries import user as user_query, wishlist as wishlist_query
 from onboarding_app.tests.conftest import client, TestingSessionLocal
-from onboarding_app.tests.utils import obtain_token_reg1, obtain_token_reg2
+from onboarding_app.tests.utils import (
+    get_wishlist_by_name,
+    obtain_token_reg1,
+    obtain_token_reg2,
+)
 
 
 def test_wishlists_create_success():
@@ -183,9 +187,7 @@ def test_change_wishlist_order():
                 description=f"wishlist{i} description",
             ),
         )
-    db_wishlist = wishlist_query.get_wishlist_by_name(
-        db=db, name="wishlist3", current_user=reg1
-    )
+    db_wishlist = get_wishlist_by_name(db=db, name="wishlist3", current_user=reg1)
 
     # When
     wishlist_order_response = client.put(
