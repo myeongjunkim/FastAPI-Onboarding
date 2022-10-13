@@ -144,7 +144,7 @@ def test_wishlists_delete_success():
         db=db,
         current_user=reg1,
         wishlist=schemas.WishlistCreate(
-            name="wishlist1", description="wishlist1 description", order_method=1
+            name="wishlist1", description="wishlist1 description"
         ),
     )
 

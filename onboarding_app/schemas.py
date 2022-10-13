@@ -64,7 +64,6 @@ class Wishlist(BaseModel):
     created_date: str
     updated_date: str
     is_open: bool
-    order_method: int
     order_num: int
 
     class Config:

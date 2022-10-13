@@ -49,7 +49,6 @@ class Wishlist(Base):
     created_date = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_date = Column(DateTime(timezone=True), default=datetime.utcnow)
     is_open = Column(Boolean, default=False)
-    order_method = Column(Integer, default=1)
     order_num = Column(Integer, nullable=True)
 
 
