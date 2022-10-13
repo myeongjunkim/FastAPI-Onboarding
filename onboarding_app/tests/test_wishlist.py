@@ -10,7 +10,9 @@ from onboarding_app.tests.utils import (
 
 def test_wishlists_create_success():
     # Given
+    db = TestingSessionLocal()
     reg1_token = obtain_token_reg1()
+    reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     # When
     wishlist_response = client.post(
@@ -26,7 +28,7 @@ def test_wishlists_create_success():
     assert wishlist_response.status_code == 200
     assert wishlist_response.json()["name"] == "wishlist1"
     assert wishlist_response.json()["description"] == "wishlist1 description"
-    assert wishlist_response.json()["user_id"] == 2
+    assert wishlist_response.json()["user_id"] == reg1.id
 
 
 def test_wishlists_fetch_success():
@@ -193,4 +195,4 @@ def test_change_wishlist_order():
 
     # Then
     assert wishlist_order_response.status_code == 200
-    assert wishlist_order_response.json()["order_num"] == reg1.id
+    assert wishlist_order_response.json()["order_num"] == 2
