@@ -97,11 +97,11 @@ def delete_wishlist(
     _check_wishlist_exist_and_access_permission(db_wishlist, current_user)
     db_wishlist.delete()
     db.commit()
-    _reorder_order_num(db, current_user.id)
+    _reorder_wishlist_order_num(db, current_user.id)
     return db_wishlist.first()
 
 
-def _reorder_order_num(db: Session, user_id: int):
+def _reorder_wishlist_order_num(db: Session, user_id: int):
     users_db_wishlist = (
         db.query(models.Wishlist)
         .filter(models.Wishlist.user_id == user_id)
