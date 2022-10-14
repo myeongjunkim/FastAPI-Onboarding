@@ -9,7 +9,7 @@ from onboarding_app import database, dependencies, models, schemas, utils
 from onboarding_app.config import settings
 from onboarding_app.queries import user as user_query
 
-user_router = APIRouter()
+user_router = APIRouter(tags=["user"])
 
 
 @user_router.post("/users/signup", response_model=schemas.UserResponse)

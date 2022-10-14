@@ -38,7 +38,7 @@ def create_user(
         db.refresh(db_user)
         return db_user
     except IntegrityError:
-        raise exceptions.UserDuplicatedError
+        raise exceptions.DuplicatedError
 
 
 # OAuth2

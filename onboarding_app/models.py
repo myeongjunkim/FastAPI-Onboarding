@@ -1,4 +1,15 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from datetime import datetime
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import relationship
 
 from onboarding_app.database import Base, engine
 
@@ -13,6 +24,8 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
 
+    wishlists = relationship("Wishlist", backref="user")
+
 
 class Stock(Base):
     __tablename__ = "stocks"
@@ -24,5 +37,21 @@ class Stock(Base):
     price = Column(Integer, index=True, default=0)
 
 
+class Wishlist(Base):
+    __tablename__ = "wishlists"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    name = Column(String, index=True)
+    __table_args__ = (UniqueConstraint("user_id", "name", name="user_id__name_unique"),)
+
+    description = Column(String)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    is_open = Column(Boolean, default=False)
+    order_num = Column(Integer, nullable=True)
+
+
 User.__table__.create(bind=engine, checkfirst=True)
 Stock.__table__.create(bind=engine, checkfirst=True)
+Wishlist.__table__.create(bind=engine, checkfirst=True)

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, constr, EmailStr, validator
 
 
@@ -46,12 +48,33 @@ class Stock(BaseModel):
     name: str
     price: int
 
-    class Config:
-        orm_mode = True
-
 
 class StockCreate(BaseModel):
     code: str
     market: str
     name: str
     price: int
+
+
+class Wishlist(BaseModel):
+    id: int
+    user_id: int
+    name: str
+    description: str
+    created_at: str
+    updated_at: str
+    is_open: bool
+    order_num: int
+
+    class Config:
+        orm_mode = True
+
+
+class WishlistCreate(BaseModel):
+    name: str
+    description: str
+
+
+class WishlistUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]

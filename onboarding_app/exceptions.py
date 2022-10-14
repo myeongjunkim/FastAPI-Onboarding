@@ -6,7 +6,7 @@ class DataDoesNotExistError(OnboardingException):
     ...
 
 
-class UserDuplicatedError(OnboardingException):
+class DuplicatedError(OnboardingException):
     ...
 
 
@@ -23,4 +23,8 @@ class FileOpenError(OnboardingException):
 
 
 class PermissionDeniedError(OnboardingException):
+    ...
+
+
+class InvalidQueryError(OnboardingException):
     ...
