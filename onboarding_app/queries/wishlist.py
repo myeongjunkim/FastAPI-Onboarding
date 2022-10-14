@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Query, Session
 
@@ -41,19 +42,19 @@ def create_wishlist(
 def fetch_wishlists(
     db: Session,
     current_user: schemas.User,
+    sort: str,
     order_by: str,
-    desc: bool,
     limit: int,
     offset: int,
 ) -> list[models.Wishlist]:
 
-    order_column = models.Wishlist.__table__.columns.get(order_by)
-    if desc:
-        order_column = order_column.desc()
+    # order_column = models.Wishlist.__table__.columns.get(order_by)
+    # if desc:
+    #     order_column = order_column.desc()
     return (
         db.query(models.Wishlist)
         .filter(models.Wishlist.user_id == current_user.id)
-        .order_by(order_column)
+        .order_by(text(sort + " " + order_by))
         .limit(limit)
         .offset(offset)
         .all()
