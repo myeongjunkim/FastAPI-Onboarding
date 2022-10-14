@@ -174,7 +174,7 @@ def test_wishlists_delete_success():
     assert wishlist_response_to_check_deleted_wishlist.status_code == 404
 
 
-def test_wishlists_udate_and_delete_fail_with_other_user_token():
+def test_wishlists_update_and_delete_fail_with_other_user_token():
 
     # Given
     other_user_token = obtain_token_reg2()
