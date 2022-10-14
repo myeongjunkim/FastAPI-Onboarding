@@ -24,7 +24,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
 
-    wishlist = relationship("Wishlist", backref="users")
+    wishlists = relationship("Wishlist", backref="user")
 
 
 class Stock(Base):

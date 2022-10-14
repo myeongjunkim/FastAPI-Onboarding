@@ -69,7 +69,6 @@ def get_wishlist(
     elif db_wishlist.first().is_open:
         return db_wishlist.first()
     elif db_wishlist.first().user_id != current_user.id:
-        print(db_wishlist.first().user_id, current_user.id)
         raise exceptions.PermissionDeniedError
     return db_wishlist.first()
 
