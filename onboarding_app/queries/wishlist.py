@@ -8,11 +8,11 @@ from onboarding_app import exceptions, models, schemas
 
 
 def _check_wishlist_exist_and_access_permission(
-    wishlist_query: Query, current_user: schemas.User
+    wishlist_query_res: Query, current_user: schemas.User
 ):
-    if not wishlist_query.first():
+    if not wishlist_query_res.first():
         raise exceptions.DataDoesNotExistError
-    elif wishlist_query.first().user_id != current_user.id:
+    elif wishlist_query_res.first().user_id != current_user.id:
         raise exceptions.PermissionDeniedError
 
 
@@ -25,18 +25,18 @@ def create_wishlist(
             .filter(models.Wishlist.user_id == current_user.id)
             .count()
         )
-        db_wishlist = models.Wishlist(
+        created_wishlist = models.Wishlist(
             user_id=current_user.id,
             name=wishlist.name,
             description=wishlist.description,
             order_num=count_for_order,
         )
-        db.add(db_wishlist)
+        db.add(created_wishlist)
         db.commit()
-        db.refresh(db_wishlist)
+        db.refresh(created_wishlist)
     except IntegrityError:
         raise exceptions.DuplicatedError
-    return db_wishlist
+    return created_wishlist
 
 
 def fetch_wishlists(
@@ -48,9 +48,6 @@ def fetch_wishlists(
     offset: int,
 ) -> list[models.Wishlist]:
 
-    # order_column = models.Wishlist.__table__.columns.get(order_by)
-    # if desc:
-    #     order_column = order_column.desc()
     return (
         db.query(models.Wishlist)
         .filter(models.Wishlist.user_id == current_user.id)
@@ -64,11 +61,16 @@ def fetch_wishlists(
 def get_wishlist(
     db: Session, wishlist_id: int, current_user: schemas.User
 ) -> models.Wishlist:
-    db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
-    if not db_wishlist.first():
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist_id
+    )
+    if not wishlist_query_res.first():
         raise exceptions.DataDoesNotExistError
-    elif db_wishlist.first().is_open or db_wishlist.first().user_id == current_user.id:
-        return db_wishlist.first()
+    elif (
+        wishlist_query_res.first().is_open
+        or wishlist_query_res.first().user_id == current_user.id
+    ):
+        return wishlist_query_res.first()
     else:
         raise exceptions.PermissionDeniedError
 
@@ -79,36 +81,40 @@ def update_wishlist(
     current_user: schemas.User,
     wishlist: schemas.WishlistUpdate,
 ) -> models.Wishlist:
-    db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
-    _check_wishlist_exist_and_access_permission(db_wishlist, current_user)
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist_id
+    )
+    _check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
     try:
-        db_wishlist.update(wishlist.dict(exclude_unset=True))
-        db_wishlist.first().updated_at = datetime.utcnow()
+        wishlist_query_res.update(wishlist.dict(exclude_unset=True))
+        wishlist_query_res.first().updated_at = datetime.utcnow()
         db.commit()
-        db.refresh(db_wishlist.first())
+        db.refresh(wishlist_query_res.first())
     except IntegrityError:
         raise exceptions.DuplicatedError
-    return db_wishlist.first()
+    return wishlist_query_res.first()
 
 
 def delete_wishlist(
     db: Session, wishlist_id: int, current_user: schemas.User
 ) -> models.Wishlist:
-    db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
-    _check_wishlist_exist_and_access_permission(db_wishlist, current_user)
-    db_wishlist.delete()
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist_id
+    )
+    _check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    wishlist_query_res.delete()
     db.commit()
     _reorder_wishlist_order_num(db, current_user.id)
-    return db_wishlist.first()
+    return wishlist_query_res.first()
 
 
 def _reorder_wishlist_order_num(db: Session, user_id: int):
-    users_db_wishlist = (
+    users_wishlist_query_res = (
         db.query(models.Wishlist)
         .filter(models.Wishlist.user_id == user_id)
         .order_by(models.Wishlist.order_num)
     )
-    for i, wishlist in enumerate(users_db_wishlist):
+    for i, wishlist in enumerate(users_wishlist_query_res):
         wishlist.order_num = i
     db.commit()
 
@@ -119,24 +125,26 @@ def change_wishlist_order(
     wishlist_id: int,
     hope_order: int,
 ) -> models.Wishlist:
-    db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
-    users_db_wishlist = db.query(models.Wishlist).filter(
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist_id
+    )
+    users_wishlist_query_res = db.query(models.Wishlist).filter(
         models.Wishlist.user_id == current_user.id
     )
 
-    _check_wishlist_exist_and_access_permission(db_wishlist, current_user)
-    if hope_order < 0 or hope_order >= users_db_wishlist.count():
+    _check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    if hope_order < 0 or hope_order >= users_wishlist_query_res.count():
         raise exceptions.InvalidQueryError
 
-    origin_order = db_wishlist.first().order_num
+    origin_order = wishlist_query_res.first().order_num
     if hope_order > origin_order:
         _update_upper_num_order(db, current_user, origin_order, hope_order)
 
     elif hope_order < origin_order:
         _update_lower_num_order(db, current_user, origin_order, hope_order)
-    db_wishlist.first().order_num = hope_order
+    wishlist_query_res.first().order_num = hope_order
     db.commit()
-    return db_wishlist.first()
+    return wishlist_query_res.first()
 
 
 def _update_upper_num_order(
