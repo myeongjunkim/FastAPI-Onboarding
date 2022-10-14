@@ -1,4 +1,4 @@
-from onboarding_app import schemas
+from onboarding_app import models, schemas
 from onboarding_app.queries import user as user_query, wishlist as wishlist_query
 from onboarding_app.tests.conftest import client, TestingSessionLocal
 from onboarding_app.tests.utils import (
@@ -164,14 +164,13 @@ def test_wishlists_delete_success():
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
-    wishlist_response_to_check_deleted_wishlist = client.get(
-        f"/wishlists/{wishlist.id}",
-        headers={"Authorization": "Bearer " + reg1_token},
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist.id
     )
 
     # Then
     assert wishlist_response_by_reg1.status_code == 200
-    assert wishlist_response_to_check_deleted_wishlist.status_code == 404
+    assert wishlist_query_res.first() is None
 
 
 def test_wishlists_update_and_delete_fail_with_other_user_token():
