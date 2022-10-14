@@ -159,13 +159,19 @@ def test_wishlists_delete_success():
     )
 
     # When
-    wishlist_response_by_other_uesr = client.delete(
+    wishlist_response_by_reg1 = client.delete(
+        f"/wishlists/{wishlist.id}",
+        headers={"Authorization": "Bearer " + reg1_token},
+    )
+
+    wishlist_response_to_check_deleted_wishlist = client.get(
         f"/wishlists/{wishlist.id}",
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
     # Then
-    assert wishlist_response_by_other_uesr.status_code == 200
+    assert wishlist_response_by_reg1.status_code == 200
+    assert wishlist_response_to_check_deleted_wishlist.status_code == 404
 
 
 def test_wishlists_udate_and_delete_fail_with_other_user_token():
