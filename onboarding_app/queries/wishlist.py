@@ -7,11 +7,11 @@ from onboarding_app import exceptions, models, schemas
 
 
 def _check_wishlist_exist_and_access_permission(
-    db_wishlist: Query, current_user: schemas.User
+    wishlist_query: Query, current_user: schemas.User
 ):
-    if not db_wishlist.first():
+    if not wishlist_query.first():
         raise exceptions.DataDoesNotExistError
-    elif db_wishlist.first().user_id != current_user.id:
+    elif wishlist_query.first().user_id != current_user.id:
         raise exceptions.PermissionDeniedError
 
 
