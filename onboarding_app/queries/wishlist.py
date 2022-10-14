@@ -66,11 +66,10 @@ def get_wishlist(
     db_wishlist = db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id)
     if not db_wishlist.first():
         raise exceptions.DataDoesNotExistError
-    elif db_wishlist.first().is_open:
+    elif db_wishlist.first().is_open or db_wishlist.first().user_id == current_user.id:
         return db_wishlist.first()
-    elif db_wishlist.first().user_id != current_user.id:
+    else:
         raise exceptions.PermissionDeniedError
-    return db_wishlist.first()
 
 
 def update_wishlist(
