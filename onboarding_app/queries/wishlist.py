@@ -51,7 +51,7 @@ def fetch_wishlists(
     return (
         db.query(models.Wishlist)
         .filter(models.Wishlist.user_id == current_user.id)
-        .order_by(text(sort + " " + order_by))
+        .order_by(text(f"{sort} {order_by}"))
         .limit(limit)
         .offset(offset)
         .all()
