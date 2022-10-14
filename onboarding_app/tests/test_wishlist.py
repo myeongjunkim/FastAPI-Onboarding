@@ -82,7 +82,7 @@ def test_wishlists_get_success():
     # Then
     assert wishlist_response_by_reg1.status_code == 200
     assert wishlist_response_by_reg1.json()["name"] == "wishlist1"
-    assert wishlist_response_by_reg1.json()["user_id"] == 2
+    assert wishlist_response_by_reg1.json()["user_id"] == reg1.id
 
 
 def test_wishlists_get_fail_with_other_user_token():
