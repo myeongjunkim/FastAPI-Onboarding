@@ -37,3 +37,41 @@ def fetch_wishlistXstocks(
     return wishlistXstock_query.fetch_wishlistXstocks(
         db=db, current_user=current_user, wishlist_id=wishlist_id
     )
+
+
+@wishlistXstock_router.get(
+    "/wishlists/{wishlist_id}/stocks/{wishlistXstock_id}",
+    response_model=schemas.WishlistXstockResponse,
+)
+def get_wishlistXstock(
+    wishlist_id: int,
+    wishlistXstock_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    return wishlistXstock_query.get_wishlistXstock(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        wishlistXstock_id=wishlistXstock_id,
+    )
+
+
+@wishlistXstock_router.put(
+    "/wishlists/{wishlist_id}/stocks/{wishlistXstock_id}",
+    response_model=schemas.WishlistXstockResponse,
+)
+def update_wishlistXstock(
+    wishlist_id: int,
+    wishlistXstock_id: int,
+    wishlistXstock: schemas.WishlistXstockUpdate,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    return wishlistXstock_query.update_wishlistXstock(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        wishlistXstock_id=wishlistXstock_id,
+        wishlistXstock=wishlistXstock,
+    )
