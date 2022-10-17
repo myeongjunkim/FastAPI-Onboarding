@@ -23,3 +23,17 @@ def create_wishlistXstock(
         wishlistXstock=wishlistXstock,
     )
     return db_wishlistXstock
+
+
+@wishlistXstock_router.get(
+    "/wishlists/{wishlist_id}/stocks",
+    response_model=list[schemas.WishlistXstockResponse],
+)
+def fetch_wishlistXstocks(
+    wishlist_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    return wishlistXstock_query.fetch_wishlistXstocks(
+        db=db, current_user=current_user, wishlist_id=wishlist_id
+    )

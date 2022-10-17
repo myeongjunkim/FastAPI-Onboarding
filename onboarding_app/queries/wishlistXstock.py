@@ -19,7 +19,7 @@ def create_wishlistXstock(
     wishlist_query_res = db.query(models.Wishlist).filter(
         models.Wishlist.id == wishlist_id
     )
-    utils._check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    utils.check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
 
     db_stock = get_stock_by_name(wishlistXstock.stock_name, db)
     if not db_stock:
@@ -54,7 +54,7 @@ def create_wishlistXstock(
     except IntegrityError:
         raise exceptions.DuplicatedError
 
-    wishlistXstockResponse = schemas.WishlistXstockResponse(
+    return schemas.WishlistXstockResponse(
         wishlist_id=wishlist_id,
         stock_name=db_stock.name,
         order_num=count_for_order,
@@ -63,4 +63,49 @@ def create_wishlistXstock(
         last_price=db_stock.price,
         return_rate=return_rate,
     )
-    return wishlistXstockResponse
+
+
+def fetch_wishlistXstocks(
+    db: Session,
+    current_user: schemas.User,
+    wishlist_id: int,
+) -> list[schemas.WishlistXstockResponse]:
+
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist_id
+    )
+    utils.check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+
+    wishlistXstocks_query_res = (
+        db.query(models.WishlistXstock)
+        .filter(models.WishlistXstock.wishlist_id == wishlist_id)
+        .order_by(models.WishlistXstock.order_num)
+        .all()
+    )
+
+    wishlistXstocks = []
+    for wishlistXstock in wishlistXstocks_query_res:
+        stock = (
+            db.query(models.Stock)
+            .filter(models.Stock.id == wishlistXstock.stock_id)
+            .first()
+        )
+        return_rate = round(
+            (stock.price - wishlistXstock.purchase_price)
+            / wishlistXstock.purchase_price
+            * 100,
+            2,
+        )
+        wishlistXstocks.append(
+            schemas.WishlistXstockResponse(
+                wishlist_id=wishlist_id,
+                stock_name=stock.name,
+                order_num=wishlistXstock.order_num,
+                purchase_price=wishlistXstock.purchase_price,
+                holding_num=wishlistXstock.holding_num,
+                last_price=stock.price,
+                return_rate=return_rate,
+            )
+        )
+
+    return wishlistXstocks
