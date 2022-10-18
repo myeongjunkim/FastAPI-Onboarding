@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from onboarding_app import database, dependencies, schemas
@@ -74,4 +75,47 @@ def update_wishlistXstock(
         wishlist_id=wishlist_id,
         wishlistXstock_id=wishlistXstock_id,
         wishlistXstock=wishlistXstock,
+    )
+
+
+@wishlistXstock_router.delete(
+    "/wishlists/{wishlist_id}/stocks/{wishlistXstock_id}",
+    response_model=schemas.WishlistXstockResponse,
+)
+def delete_wishlistXstock(
+    wishlist_id: int,
+    wishlistXstock_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    wishlistXstock_query.delete_wishlistXstock(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        wishlistXstock_id=wishlistXstock_id,
+    )
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "WishlistXstock deleted successfully"},
+    )
+
+
+@wishlistXstock_router.put(
+    "/wishlists/{wishlist_id}/stocks/{wishlistXstock_id}/order",
+    response_model=schemas.WishlistXstockResponse,
+)
+def change_wishlistXstock_order(
+    wishlist_id: int,
+    wishlistXstock_id: int,
+    hope_order: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    return wishlistXstock_query.change_wishlistXstock_order(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        wishlistXstock_id=wishlistXstock_id,
+        hope_order=hope_order,
     )
