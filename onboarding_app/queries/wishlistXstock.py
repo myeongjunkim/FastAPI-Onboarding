@@ -193,12 +193,12 @@ def delete_wishlistXstock(
 
     wishlistXstock_query_res.delete()
     db.commit()
-    _reorder_wishlistXstock_order_num(db, wishlist_id)
+    _reorder_wishlistXstock_for_delete(db, wishlist_id)
 
     return None
 
 
-def _reorder_wishlistXstock_order_num(db: Session, wishlist_id: int):
+def _reorder_wishlistXstock_for_delete(db: Session, wishlist_id: int):
     users_wishlist_query_res = (
         db.query(models.WishlistXstock)
         .filter(models.WishlistXstock.wishlist_id == wishlist_id)
@@ -230,29 +230,12 @@ def change_wishlistXstock_order(
         models.WishlistXstock
     ).filter(models.WishlistXstock.wishlist_id == wishlist_id)
 
-    if (
-        hope_order < 0
-        or hope_order >= wishlistXstockList_query_res_by_foreign_key.count()
-    ):
-        raise exceptions.InvalidQueryError
-
-    origin_order = wishlistXstock_query_res.first().order_num
-    if hope_order > origin_order:
-        utils.update_upper_num_order(
-            wishlistXstockList_query_res_by_foreign_key,
-            models.WishlistXstock,
-            origin_order,
-            hope_order,
-        )
-
-    elif hope_order < origin_order:
-        utils.update_lower_num_order(
-            wishlistXstockList_query_res_by_foreign_key,
-            models.WishlistXstock,
-            origin_order,
-            hope_order,
-        )
-    wishlistXstock_query_res.first().order_num = hope_order
+    utils.reorder_for_change_order(
+        target_model=models.WishlistXstock,
+        hope_order=hope_order,
+        modelList_query_res_by_foreign_key=wishlistXstockList_query_res_by_foreign_key,
+        target_model_query_res=wishlistXstock_query_res,
+    )
     db.commit()
 
     db_wishlistXstock = wishlistXstock_query_res.first()
@@ -262,4 +245,4 @@ def change_wishlistXstock_order(
         .first()
     )
 
-    return _get_wishlistXstock_response(wishlistXstock_query_res.first(), db_stock)
+    return _get_wishlistXstock_response(db_wishlistXstock, db_stock)
