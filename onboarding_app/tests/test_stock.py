@@ -73,7 +73,7 @@ def test_fetch_stock_in_wishlist():
     reg1_token = obtain_token_reg1()
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
-    dbstock_list = db.query(models.Stock).limit(10).offset(0).all()
+    db_wishstock_list = db.query(models.Stock).limit(10).offset(0).all()
 
     for i in range(10):
         wishlist_query.add_stock_to_wishlist(
@@ -81,8 +81,8 @@ def test_fetch_stock_in_wishlist():
             current_user=reg1,
             wishlist_id=wishlist1.id,
             wishstock=schemas.WishStockCreate(
-                stock_name=dbstock_list[i].name,
-                purchase_price=dbstock_list[i].price,
+                stock_name=db_wishstock_list[i].name,
+                purchase_price=db_wishstock_list[i].price,
                 holding_num=i * 10,
             ),
         )
@@ -190,3 +190,65 @@ def test_delete_stock_in_wishlist():
     # Then
     assert stock_response.status_code == 200
     assert deleted_wishstock_query_res.first() is None
+
+
+def test_change_stock_order():
+    # Given
+    db = TestingSessionLocal()
+    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1_token = obtain_token_reg1()
+    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+
+    db_stock_list = db.query(models.Stock).limit(10).offset(0).all()
+
+    for i in range(10):
+        wishlist_query.add_stock_to_wishlist(
+            db=db,
+            current_user=reg1,
+            wishlist_id=wishlist1.id,
+            wishstock=schemas.WishStockCreate(
+                stock_name=db_stock_list[i].name,
+                purchase_price=db_stock_list[i].price,
+                holding_num=i * 10,
+            ),
+        )
+
+    origin_order = 2
+    hope_order = 5
+
+    db_wishstock = (
+        db.query(models.WishlistXstock)
+        .filter(
+            models.WishlistXstock.wishlist_id == wishlist1.id,
+            models.WishlistXstock.id == db_stock_list[origin_order].id,
+        )
+        .first()
+    )
+
+    # When
+    stock_order_response = client.put(
+        f"/wishlists/{wishlist1.id}/wishstocks/{db_wishstock.id}/order",
+        headers={"Authorization": "Bearer " + reg1_token},
+        params={"hope_order": hope_order},
+    )
+
+    # Then
+    assert stock_order_response.status_code == 200
+    assert stock_order_response.json()["order_num"] == hope_order
+
+    db_wishstock_list = (
+        db.query(models.WishlistXstock)
+        .filter(
+            models.WishlistXstock.wishlist_id == wishlist1.id,
+        )
+        .order_by(models.WishlistXstock.order_num)
+        .all()
+    )
+    for i, wishstock in enumerate(db_wishstock_list):
+
+        if i < 2 or i > 5:
+            assert wishstock.stock_id == db_stock_list[i].id
+        elif i == hope_order:
+            assert wishstock.stock_id == db_stock_list[origin_order].id
+        else:
+            assert wishstock.stock_id == db_stock_list[i].id + 1
