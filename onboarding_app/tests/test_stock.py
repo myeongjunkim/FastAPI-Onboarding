@@ -34,7 +34,7 @@ def test_add_stock_to_wishlist():
 
     # When
     stock_response = client.post(
-        f"/wishlists/{wishlist1.id}/stocks",
+        f"/wishlists/{wishlist1.id}/wishstocks",
         json={"stock_name": "카카오", "purchase_price": 12332, "holding_num": 10},
         headers={"Authorization": "Bearer " + reg1_token},
     )
@@ -53,7 +53,7 @@ def test_add_stock_to_wishlist_fail_case():
 
     # When
     stock_response = client.post(
-        f"/wishlists/{wishlist1.id}/stocks",
+        f"/wishlists/{wishlist1.id}/wishstocks",
         json={
             "stock_name": "not stock name",
             "purchase_price": 12332,
@@ -80,7 +80,7 @@ def test_fetch_stock_in_wishlist():
             db=db,
             current_user=reg1,
             wishlist_id=wishlist1.id,
-            wishlistXstock=schemas.WishStockCreate(
+            wishstock=schemas.WishStockCreate(
                 stock_name=dbstock_list[i].name,
                 purchase_price=dbstock_list[i].price,
                 holding_num=i * 10,
@@ -89,7 +89,7 @@ def test_fetch_stock_in_wishlist():
 
     # When
     stock_response = client.get(
-        f"/wishlists/{wishlist1.id}/stocks",
+        f"/wishlists/{wishlist1.id}/wishstocks",
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
@@ -109,7 +109,7 @@ def test_get_stock_in_wishlist():
         db=db,
         current_user=reg1,
         wishlist_id=wishlist1.id,
-        wishlistXstock=schemas.WishStockCreate(
+        wishstock=schemas.WishStockCreate(
             stock_name="카카오",
             purchase_price="100000",
             holding_num=10,
@@ -118,12 +118,75 @@ def test_get_stock_in_wishlist():
 
     # When
     stock_response = client.get(
-        f"/wishlists/{wishlist1.id}/stocks/{db_wishstock.id}",
+        f"/wishlists/{wishlist1.id}/wishstocks/{db_wishstock.id}",
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
-    print(db_wishstock.id)
+    # Then
+    assert stock_response.status_code == 200
+    assert stock_response.json()["stock_name"] == db_wishstock.stock_name
+
+
+def test_update_stock_in_wishlist():
+    # Given
+    db = TestingSessionLocal()
+    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1_token = obtain_token_reg1()
+    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+
+    db_wishstock = wishlist_query.add_stock_to_wishlist(
+        db=db,
+        current_user=reg1,
+        wishlist_id=wishlist1.id,
+        wishstock=schemas.WishStockCreate(
+            stock_name="카카오",
+            purchase_price="100000",
+            holding_num=10,
+        ),
+    )
+
+    # When
+    stock_response = client.put(
+        f"/wishlists/{wishlist1.id}/wishstocks/{db_wishstock.id}",
+        json={"purchase_price": 120000, "holding_num": 100},
+        headers={"Authorization": "Bearer " + reg1_token},
+    )
 
     # Then
     assert stock_response.status_code == 200
-    assert stock_response.json()["stock_name"] == "카카오"
+    assert stock_response.json()["purchase_price"] == 120000
+    assert stock_response.json()["holding_num"] == 100
+
+
+def test_delete_stock_in_wishlist():
+    # Given
+    db = TestingSessionLocal()
+    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1_token = obtain_token_reg1()
+    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+
+    db_wishstock = wishlist_query.add_stock_to_wishlist(
+        db=db,
+        current_user=reg1,
+        wishlist_id=wishlist1.id,
+        wishstock=schemas.WishStockCreate(
+            stock_name="카카오",
+            purchase_price="100000",
+            holding_num=10,
+        ),
+    )
+
+    # When
+    stock_response = client.delete(
+        f"/wishlists/{wishlist1.id}/wishstocks/{db_wishstock.id}",
+        headers={"Authorization": "Bearer " + reg1_token},
+    )
+
+    deleted_wishstock_query_res = db.query(models.WishlistXstock).filter(
+        models.WishlistXstock.wishlist_id == db_wishstock.wishlist_id,
+        models.WishlistXstock.id == db_wishstock.id,
+    )
+
+    # Then
+    assert stock_response.status_code == 200
+    assert deleted_wishstock_query_res.first() is None
