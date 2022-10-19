@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from onboarding_app import database, dependencies, schemas
 from onboarding_app.queries import wishlistXstock as wishlistXstock_query
 
-wishlistXstock_router = APIRouter(tags=["wishlistXstock"])
+wishlistXstock_router = APIRouter(tags=["stock"])
 
 
 @wishlistXstock_router.post(
@@ -41,7 +41,7 @@ def fetch_wishlistXstocks(
 
 
 @wishlistXstock_router.get(
-    "/wishlists/{wishlist_id}/stocks/{wishlistXstock_id}",
+    "/wishlists/{wishlist_id}/stocks/{stock_id}",
     response_model=schemas.WishlistXstockResponse,
 )
 def get_wishlistXstock(
@@ -59,7 +59,7 @@ def get_wishlistXstock(
 
 
 @wishlistXstock_router.put(
-    "/wishlists/{wishlist_id}/stocks/{wishlistXstock_id}",
+    "/wishlists/{wishlist_id}/stocks/{stock_id}",
     response_model=schemas.WishlistXstockResponse,
 )
 def update_wishlistXstock(
@@ -79,7 +79,7 @@ def update_wishlistXstock(
 
 
 @wishlistXstock_router.delete(
-    "/wishlists/{wishlist_id}/stocks/{wishlistXstock_id}",
+    "/wishlists/{wishlist_id}/stocks/{stock_id}",
     response_model=schemas.WishlistXstockResponse,
 )
 def delete_wishlistXstock(
@@ -102,7 +102,7 @@ def delete_wishlistXstock(
 
 
 @wishlistXstock_router.put(
-    "/wishlists/{wishlist_id}/stocks/{wishlistXstock_id}/order",
+    "/wishlists/{wishlist_id}/stocks/{stock_idd}/order",
     response_model=schemas.WishlistXstockResponse,
 )
 def change_wishlistXstock_order(
