@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query, Session
 
 from onboarding_app import exceptions, models, schemas, utils
 

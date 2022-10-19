@@ -2,6 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from onboarding_app import exceptions, models, schemas, utils
+from onboarding_app.queries import wishlist as wishlist_query
 
 
 def _get_stock_by_name(stock_name: str, db: Session) -> models.Stock:
@@ -42,7 +43,7 @@ def add_stock_to_wishlist(
     wishlist_query_res = db.query(models.Wishlist).filter(
         models.Wishlist.id == wishlist_id
     )
-    utils.check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    wishlist_query.validate_accessible_wishlist(wishlist_query_res, current_user)
 
     db_stock = _get_stock_by_name(wishlistXstock.stock_name, db)
     if not db_stock:
@@ -82,7 +83,7 @@ def fetch_stock_in_wishlist(
     wishlist_query_res = db.query(models.Wishlist).filter(
         models.Wishlist.id == wishlist_id
     )
-    utils.check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    wishlist_query.validate_accessible_wishlist(wishlist_query_res, current_user)
 
     wishlistXstocks_query_res = (
         db.query(models.WishlistXstock)
@@ -116,7 +117,7 @@ def get_stock_in_wishlist(
     wishlist_query_res = db.query(models.Wishlist).filter(
         models.Wishlist.id == wishlist_id
     )
-    utils.check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    wishlist_query.validate_accessible_wishlist(wishlist_query_res, current_user)
 
     wishlistXstock_query_res = db.query(models.WishlistXstock).filter(
         models.WishlistXstock.wishlist_id == wishlist_id,
@@ -147,7 +148,7 @@ def update_stock_in_wishlist(
     wishlist_query_res = db.query(models.Wishlist).filter(
         models.Wishlist.id == wishlist_id
     )
-    utils.check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    wishlist_query.validate_accessible_wishlist(wishlist_query_res, current_user)
 
     wishlistXstock_query_res = db.query(models.WishlistXstock).filter(
         models.WishlistXstock.wishlist_id == wishlist_id,
@@ -181,7 +182,7 @@ def delete_stock_in_wishlist(
     wishlist_query_res = db.query(models.Wishlist).filter(
         models.Wishlist.id == wishlist_id
     )
-    utils.check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    wishlist_query.validate_accessible_wishlist(wishlist_query_res, current_user)
 
     wishlistXstock_query_res = db.query(models.WishlistXstock).filter(
         models.WishlistXstock.wishlist_id == wishlist_id,
@@ -219,7 +220,7 @@ def change_wishlistXstock_order(
     wishlist_query_res = db.query(models.Wishlist).filter(
         models.Wishlist.id == wishlist_id
     )
-    utils.check_wishlist_exist_and_access_permission(wishlist_query_res, current_user)
+    wishlist_query.validate_accessible_wishlist(wishlist_query_res, current_user)
 
     wishlistXstock_query_res = db.query(models.WishlistXstock).filter(
         models.WishlistXstock.wishlist_id == wishlist_id,
