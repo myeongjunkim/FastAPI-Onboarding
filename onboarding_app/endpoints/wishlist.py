@@ -103,7 +103,7 @@ def change_wishlist_order(
 
 
 @wishlist_router.post(
-    "/wishlists/{wishlist_id}/stocks", response_model=schemas.WishStockResponse
+    "/wishlists/{wishlist_id}/wishstocks", response_model=schemas.WishStockResponse
 )
 def add_stock_to_wishlist(
     wishlist_id: int,
@@ -121,7 +121,7 @@ def add_stock_to_wishlist(
 
 
 @wishlist_router.get(
-    "/wishlists/{wishlist_id}/stocks",
+    "/wishlists/{wishlist_id}/wishstocks",
     response_model=list[schemas.WishStockResponse],
 )
 def fetch_stock_in_wishlist(
@@ -135,7 +135,7 @@ def fetch_stock_in_wishlist(
 
 
 @wishlist_router.get(
-    "/wishlists/{wishlist_id}/stocks/{stock_id}",
+    "/wishlists/{wishlist_id}/wishstocks/{wishstock_id}",
     response_model=schemas.WishStockResponse,
 )
 def get_stock_in_wishlist(
@@ -153,7 +153,7 @@ def get_stock_in_wishlist(
 
 
 @wishlist_router.put(
-    "/wishlists/{wishlist_id}/stocks/{stock_id}",
+    "/wishlists/{wishlist_id}/wishstocks/{wishstock_id}",
     response_model=schemas.WishStockResponse,
 )
 def update_stock_in_wishlist(
@@ -173,7 +173,7 @@ def update_stock_in_wishlist(
 
 
 @wishlist_router.delete(
-    "/wishlists/{wishlist_id}/stocks/{stock_id}",
+    "/wishlists/{wishlist_id}/wishstocks/{wishstock_id}",
     response_model=schemas.WishStockResponse,
 )
 def delete_stock_in_wishlist(
@@ -196,7 +196,7 @@ def delete_stock_in_wishlist(
 
 
 @wishlist_router.put(
-    "/wishlists/{wishlist_id}/stocks/{stock_id}/order",
+    "/wishlists/{wishlist_id}/wishstocks/{wishstock_id}/order",
     response_model=schemas.WishStockResponse,
 )
 def change_stock_order(
