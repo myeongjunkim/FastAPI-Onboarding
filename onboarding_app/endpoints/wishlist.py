@@ -6,7 +6,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from onboarding_app import database, dependencies, schemas
-from onboarding_app.queries import wishlist as wishlist_query
+from onboarding_app.queries import (
+    wishlist as wishlist_query,
+    wishlistXstock as wishlistXstock_query,
+)
 
 wishlist_router = APIRouter(tags=["wishlist"])
 
