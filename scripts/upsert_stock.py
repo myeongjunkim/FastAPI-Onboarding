@@ -1,5 +1,4 @@
 import csv
-import os
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.dialects.sqlite import insert
@@ -8,7 +7,7 @@ from sqlalchemy.engine.base import Engine
 from onboarding_app import database, exceptions, models
 
 file_name = ["data_3035_20220929.csv", "data_1205_20220930.csv"]
-DB_CSV_DIR = os.getcwd() + "/resources/" + file_name[1]
+DB_CSV_DIR = "./resources/" + file_name[1]
 
 SQL_APP_DB_ENGINE = database.engine
 
