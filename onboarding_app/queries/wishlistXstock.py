@@ -32,7 +32,7 @@ def _get_wishlistXstock_response(
     )
 
 
-def create_wishlistXstock(
+def add_stock_to_wishlist(
     db: Session,
     current_user: schemas.User,
     wishlist_id: int,
@@ -73,7 +73,7 @@ def create_wishlistXstock(
     return _get_wishlistXstock_response(created_wishlistXstock, db_stock)
 
 
-def fetch_wishlistXstocks(
+def fetch_stock_in_wishlist(
     db: Session,
     current_user: schemas.User,
     wishlist_id: int,
@@ -106,7 +106,7 @@ def fetch_wishlistXstocks(
     return wishlistXstocks
 
 
-def get_wishlistXstock(
+def get_stock_in_wishlist(
     db: Session,
     current_user: schemas.User,
     wishlist_id: int,
@@ -136,7 +136,7 @@ def get_wishlistXstock(
     return _get_wishlistXstock_response(db_wishlistXstock, db_stock)
 
 
-def update_wishlistXstock(
+def update_stock_in_wishlist(
     db: Session,
     current_user: schemas.User,
     wishlist_id: int,
@@ -171,7 +171,7 @@ def update_wishlistXstock(
     return _get_wishlistXstock_response(db_wishlistXstock, db_stock)
 
 
-def delete_wishlistXstock(
+def delete_stock_in_wishlist(
     db: Session,
     current_user: schemas.User,
     wishlist_id: int,
