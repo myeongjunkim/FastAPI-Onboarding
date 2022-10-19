@@ -246,7 +246,7 @@ def test_change_stock_order():
     )
     for i, wishstock in enumerate(db_wishstock_list):
 
-        if i < 2 or i > 5:
+        if i < origin_order or i > hope_order:
             assert wishstock.stock_id == db_stock_list[i].id
         elif i == hope_order:
             assert wishstock.stock_id == db_stock_list[origin_order].id
