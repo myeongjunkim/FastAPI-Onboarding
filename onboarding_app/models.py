@@ -69,7 +69,21 @@ class WishlistXstock(Base):
     order_num = Column(Integer, nullable=True)
 
 
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    wishlist_id = Column(Integer, ForeignKey("wishlists.id", ondelete="CASCADE"))
+    body = Column(String)
+    parent_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"))
+    is_reply = Column(Boolean)
+
+    # reply = relationship("Comment", backref="reply")
+
+
 User.__table__.create(bind=engine, checkfirst=True)
+Comment.__table__.create(bind=engine, checkfirst=True)
 Stock.__table__.create(bind=engine, checkfirst=True)
 Wishlist.__table__.create(bind=engine, checkfirst=True)
 WishlistXstock.__table__.create(bind=engine, checkfirst=True)
