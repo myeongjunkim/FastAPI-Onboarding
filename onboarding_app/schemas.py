@@ -80,6 +80,18 @@ class WishlistUpdate(BaseModel):
     description: Optional[str]
 
 
+class WishStock(BaseModel):
+    id: int
+    wishlist_id: int
+    stock_id: int
+    purchase_price: int
+    holding_num: int
+    order_num: int
+
+    class Config:
+        orm_mode = True
+
+
 class WishStockCreate(BaseModel):
     stock_id: int
     purchase_price: int
