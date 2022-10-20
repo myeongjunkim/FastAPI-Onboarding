@@ -204,9 +204,7 @@ def add_stock_to_wishlist(
     except IntegrityError:
         raise exceptions.DuplicatedError
 
-    return _get_wishstock_response(
-        wishlist_query_res.first(), created_wishstock, db_stock
-    )
+    return _get_wishstock_response(created_wishstock, db_stock)
 
 
 def fetch_stock_in_wishlist(
@@ -235,9 +233,7 @@ def fetch_stock_in_wishlist(
             .first()
         )
 
-        wishstocks.append(
-            _get_wishstock_response(wishlist_query_res.first(), db_wishstock, db_stock)
-        )
+        wishstocks.append(_get_wishstock_response(db_wishstock, db_stock))
 
     return wishstocks
 
@@ -265,7 +261,7 @@ def get_stock_in_wishlist(
     db_wishstock = wishstock_query_res.first()
     db_stock = db.query(models.Stock).filter(models.Stock.id == stock_id).first()
 
-    return _get_wishstock_response(wishlist_query_res.first(), db_wishstock, db_stock)
+    return _get_wishstock_response(db_wishstock, db_stock)
 
 
 def update_stock_in_wishlist(
@@ -296,7 +292,7 @@ def update_stock_in_wishlist(
     db_wishstock = wishstock_query_res.first()
     db_stock = db.query(models.Stock).filter(models.Stock.id == stock_id).first()
 
-    return _get_wishstock_response(wishlist_query_res.first(), db_wishstock, db_stock)
+    return _get_wishstock_response(db_wishstock, db_stock)
 
 
 def delete_stock_in_wishlist(
@@ -367,4 +363,4 @@ def change_stock_order(
     db_wishstock = wishstock_query_res.first()
     db_stock = db.query(models.Stock).filter(models.Stock.id == stock_id).first()
 
-    return _get_wishstock_response(wishlist_query_res.first(), db_wishstock, db_stock)
+    return _get_wishstock_response(db_wishstock, db_stock)
