@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from onboarding_app import database, dependencies, schemas
@@ -22,6 +22,27 @@ def create_comment(
     return db_comment
 
 
+@comment_router.get(
+    "/wishlists/{wishlist_id}}/comments", response_model=list[schemas.Comment]
+)
+def fetch_comments(
+    *,
+    db: Session = Depends(database.get_db),
+    wishlist_id: int,
+    limit: int = Query(default=10),
+    offset: int = Query(default=0),
+):
+
+    db_comments = comment_query.fetch_comments(
+        db=db,
+        wishlist_id=wishlist_id,
+        limit=limit,
+        offset=offset,
+    )
+
+    return db_comments
+
+
 @comment_router.post(
     "/wishlists/{wishlist_id}/comments/{comment_id}", response_model=schemas.Comment
 )
@@ -41,8 +62,3 @@ def create_reply(
         is_reply=True,
     )
     return db_comment
-
-
-# @comment_router.get(
-#     "/wishlists/{wishlist_id}}/comments", response_model=list[schemas.Comment]
-# )

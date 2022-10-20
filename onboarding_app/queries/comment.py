@@ -28,3 +28,19 @@ def create_comment(
     except IntegrityError:
         raise exceptions.DuplicatedError
     return created_comment
+
+
+def fetch_comments(
+    db: Session,
+    wishlist_id: int,
+    limit: int,
+    offset: int,
+) -> list[models.Wishlist]:
+
+    return (
+        db.query(models.Comment)
+        .filter(models.Comment.wishlist_id == wishlist_id)
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
