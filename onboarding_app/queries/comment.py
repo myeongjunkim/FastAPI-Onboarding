@@ -44,3 +44,55 @@ def fetch_comments(
         .offset(offset)
         .all()
     )
+
+
+def update_comment(
+    db: Session,
+    current_user: schemas.User,
+    comment: schemas.CommentCreate,
+    wishlist_id: int,
+    comment_id: int,
+) -> models.Comment:
+
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist_id
+    )
+    if not wishlist_query_res.first():
+        raise exceptions.DataDoesNotExistError
+
+    db_comment = (
+        db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+    )
+    if not db_comment:
+        raise exceptions.DataDoesNotExistError
+    if db_comment.user_id != current_user.id:
+        raise exceptions.PermissionDeniedError
+    db_comment.body = comment.body
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment
+
+
+def delete_comment(
+    db: Session,
+    current_user: schemas.User,
+    wishlist_id: int,
+    comment_id: int,
+) -> None:
+
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist_id
+    )
+    if not wishlist_query_res.first():
+        raise exceptions.DataDoesNotExistError
+
+    db_comment = (
+        db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+    )
+    if not db_comment:
+        raise exceptions.DataDoesNotExistError
+    if db_comment.user_id != current_user.id:
+        raise exceptions.PermissionDeniedError
+    db.delete(db_comment)
+    db.commit()
+    return None
