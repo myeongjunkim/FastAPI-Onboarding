@@ -35,7 +35,7 @@ def fetch_comments(
     wishlist_id: int,
     limit: int,
     offset: int,
-) -> list[models.Wishlist]:
+) -> list[models.Comment]:
 
     return (
         db.query(models.Comment)
@@ -44,6 +44,29 @@ def fetch_comments(
         .offset(offset)
         .all()
     )
+
+
+def fetch_replies(db: Session, wishlist_id: int, parent_id: int):
+
+    db_parent_comment = (
+        db.query(models.Comment).filter(models.Comment.id == parent_id).first()
+    )
+    if not db_parent_comment:
+        raise exceptions.DataDoesNotExistError
+
+    db_replies_list = (
+        db.query(models.Comment)
+        .filter(
+            models.Comment.wishlist_id == wishlist_id,
+            models.Comment.parent_id == parent_id,
+        )
+        .all()
+    )
+
+    return {
+        "comment": db_parent_comment,
+        "replies": db_replies_list,
+    }
 
 
 def update_comment(

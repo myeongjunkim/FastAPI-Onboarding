@@ -108,6 +108,40 @@ def test_create_reply_to_comment():
     assert reply_response.json()["is_reply"] is True
 
 
+def test_fetch_replies():
+    # Given
+    db = TestingSessionLocal()
+    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg2 = user_query.get_user_by_username(db=db, username="reg2")
+    register_list = [reg1, reg2]
+    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+
+    comment1 = comment_query.create_comment(
+        db=db,
+        current_user=reg1,
+        comment=schemas.CommentCreate(body="comment1"),
+        wishlist_id=wishlist1.id,
+    )
+
+    for i in range(10):
+        comment_query.create_comment(
+            db=db,
+            current_user=register_list[i % 2],
+            comment=schemas.CommentCreate(body=f"reply{i}"),
+            wishlist_id=wishlist1.id,
+            parent_id=comment1.id,
+        )
+
+    # When
+    reply_fetch_response = client.get(
+        f"/wishlists/{wishlist1.id}/comments/{comment1.id}",
+    )
+
+    # Then
+    assert reply_fetch_response.status_code == 200
+    assert len(reply_fetch_response.json()["replies"]) == 10
+
+
 def test_update_comment():
     # Given
     db = TestingSessionLocal()

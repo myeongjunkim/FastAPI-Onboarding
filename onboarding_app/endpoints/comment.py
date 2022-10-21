@@ -34,14 +34,14 @@ def fetch_comments(
     offset: int = Query(default=0),
 ):
 
-    db_comments = comment_query.fetch_comments(
+    db_comment_list = comment_query.fetch_comments(
         db=db,
         wishlist_id=wishlist_id,
         limit=limit,
         offset=offset,
     )
 
-    return db_comments
+    return db_comment_list
 
 
 @comment_router.post(
@@ -63,6 +63,20 @@ def create_reply_to_comment(
         is_reply=True,
     )
     return db_comment
+
+
+@comment_router.get("/wishlists/{wishlist_id}/comments/{comment_id}")
+def fetch_replies(
+    wishlist_id: int,
+    comment_id: int,
+    db: Session = Depends(database.get_db),
+):
+    db_comment_replies = comment_query.fetch_replies(
+        db=db,
+        wishlist_id=wishlist_id,
+        parent_id=comment_id,
+    )
+    return db_comment_replies
 
 
 @comment_router.put(
@@ -87,7 +101,6 @@ def update_comment(
 
 @comment_router.delete(
     "/wishlists/{wishlist_id}/comments/{comment_id}",
-    response_model=list[schemas.Comment],
 )
 def delete_comment(
     wishlist_id: int,
