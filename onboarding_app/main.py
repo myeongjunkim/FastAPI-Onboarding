@@ -72,3 +72,13 @@ async def invalid_query__exception_handler(
         status_code=status.HTTP_400_BAD_REQUEST,
         content="Invalid Query",
     )
+
+
+@app.exception_handler(exceptions.StockNotFoundError)
+async def stock_not_found_exception_handler(
+    request: Request, exc: exceptions.StockNotFoundError
+):
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content="Stock not found",
+    )

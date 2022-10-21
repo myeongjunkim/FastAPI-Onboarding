@@ -78,3 +78,34 @@ class WishlistCreate(BaseModel):
 class WishlistUpdate(BaseModel):
     name: Optional[str]
     description: Optional[str]
+
+
+class WishStock(BaseModel):
+    id: int
+    wishlist_id: int
+    stock_id: int
+    purchase_price: int
+    holding_num: int
+    order_num: int
+
+    class Config:
+        orm_mode = True
+
+
+class WishStockCreate(BaseModel):
+    stock_id: int
+    purchase_price: int
+    holding_num: int
+
+
+class WishStockUpdate(BaseModel):
+    purchase_price: Optional[int]
+    holding_num: Optional[int]
+
+
+class WishStockResponse(BaseModel):
+    stock: Stock
+    order_num: int
+    purchase_price: int
+    holding_num: int
+    return_rate: float

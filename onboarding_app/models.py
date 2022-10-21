@@ -52,6 +52,24 @@ class Wishlist(Base):
     order_num = Column(Integer, nullable=True)
 
 
+class WishlistXstock(Base):
+    __tablename__ = "wishlist_x_stock"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    wishlist_id = Column(Integer, ForeignKey("wishlists.id", ondelete="CASCADE"))
+    stock_id = Column(Integer, ForeignKey("stocks.id", ondelete="CASCADE"))
+    __table_args__ = (
+        UniqueConstraint(
+            "wishlist_id", "stock_id", name="wishlist_id__stock_id_unique"
+        ),
+    )
+
+    purchase_price = Column(Integer, nullable=True)
+    holding_num = Column(Integer, nullable=True)
+    order_num = Column(Integer, nullable=True)
+
+
 User.__table__.create(bind=engine, checkfirst=True)
 Stock.__table__.create(bind=engine, checkfirst=True)
 Wishlist.__table__.create(bind=engine, checkfirst=True)
+WishlistXstock.__table__.create(bind=engine, checkfirst=True)

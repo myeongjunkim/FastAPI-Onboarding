@@ -100,3 +100,116 @@ def change_wishlist_order(
         db=db, wishlist_id=wishlist_id, current_user=current_user, hope_order=hope_order
     )
     return jsonable_encoder(updated_wishlist)
+
+
+@wishlist_router.post(
+    "/wishlists/{wishlist_id}/stocks", response_model=schemas.WishStockResponse
+)
+def add_stock_to_wishlist(
+    wishlist_id: int,
+    wishstock: schemas.WishStockCreate,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    db_wishstock = wishlist_query.add_stock_to_wishlist(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        wishstock=wishstock,
+    )
+    return db_wishstock
+
+
+@wishlist_router.get(
+    "/wishlists/{wishlist_id}/stocks",
+    response_model=list[schemas.WishStockResponse],
+)
+def fetch_stock_in_wishlist(
+    wishlist_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    return wishlist_query.fetch_stock_in_wishlist(
+        db=db, current_user=current_user, wishlist_id=wishlist_id
+    )
+
+
+@wishlist_router.get(
+    "/wishlists/{wishlist_id}/stocks/{stock_id}",
+    response_model=schemas.WishStockResponse,
+)
+def get_stock_in_wishlist(
+    wishlist_id: int,
+    stock_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    return wishlist_query.get_stock_in_wishlist(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        stock_id=stock_id,
+    )
+
+
+@wishlist_router.put(
+    "/wishlists/{wishlist_id}/stocks/{stock_id}",
+    response_model=schemas.WishStockResponse,
+)
+def update_stock_in_wishlist(
+    wishlist_id: int,
+    stock_id: int,
+    wishstock: schemas.WishStockUpdate,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    return wishlist_query.update_stock_in_wishlist(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        stock_id=stock_id,
+        wishstock=wishstock,
+    )
+
+
+@wishlist_router.delete(
+    "/wishlists/{wishlist_id}/stocks/{stock_id}",
+    response_model=schemas.WishStockResponse,
+)
+def delete_stock_in_wishlist(
+    wishlist_id: int,
+    stock_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    wishlist_query.delete_stock_in_wishlist(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        stock_id=stock_id,
+    )
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "WishlistXstock deleted successfully"},
+    )
+
+
+@wishlist_router.put(
+    "/wishlists/{wishlist_id}/stocks/{stock_id}/order",
+    response_model=schemas.WishStockResponse,
+)
+def change_stock_order(
+    wishlist_id: int,
+    stock_id: int,
+    hope_order: int,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+    return wishlist_query.change_stock_order(
+        db=db,
+        current_user=current_user,
+        wishlist_id=wishlist_id,
+        stock_id=stock_id,
+        hope_order=hope_order,
+    )

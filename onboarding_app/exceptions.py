@@ -28,3 +28,7 @@ class PermissionDeniedError(OnboardingException):
 
 class InvalidQueryError(OnboardingException):
     ...
+
+
+class StockNotFoundError(OnboardingException):
+    ...
