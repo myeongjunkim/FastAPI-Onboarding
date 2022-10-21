@@ -1,9 +1,28 @@
 from typing import Optional
 
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from onboarding_app import exceptions, models, schemas
+
+
+def _get_comment_response(db: Session, comment: models.Comment):
+    return schemas.Comment(
+        id=comment.id,
+        user_id=comment.user_id,
+        wishlist_id=comment.wishlist_id,
+        body=comment.body,
+        is_reply=comment.is_reply,
+        parent_id=comment.parent_id,
+        history=jsonable_encoder(
+            db.query(models.History)
+            .filter(models.History.comment_id == comment.id)
+            .order_by(text("created_at desc"))
+            .all()
+        ),
+    )
 
 
 def create_comment(
@@ -22,12 +41,17 @@ def create_comment(
             parent_id=parent_id,
             is_reply=is_reply,
         )
+
         db.add(created_comment)
         db.commit()
         db.refresh(created_comment)
     except IntegrityError:
         raise exceptions.DuplicatedError
-    return created_comment
+    created_history = models.History(comment_id=created_comment.id, body=comment.body)
+    db.add(created_history)
+    db.commit()
+    db.refresh(created_history)
+    return _get_comment_response(db=db, comment=created_comment)
 
 
 def fetch_comments(
@@ -37,12 +61,18 @@ def fetch_comments(
     offset: int,
 ) -> list[models.Comment]:
 
-    return (
+    db_comment_list = (
         db.query(models.Comment)
         .filter(models.Comment.wishlist_id == wishlist_id)
         .limit(limit)
         .offset(offset)
         .all()
+    )
+    return list(
+        map(
+            lambda comment: _get_comment_response(db=db, comment=comment),
+            db_comment_list,
+        )
     )
 
 
@@ -64,8 +94,13 @@ def fetch_replies(db: Session, wishlist_id: int, parent_id: int):
     )
 
     return {
-        "comment": db_parent_comment,
-        "replies": db_replies_list,
+        "comment": _get_comment_response(db, db_parent_comment),
+        "replies": list(
+            map(
+                lambda comment: _get_comment_response(db=db, comment=comment),
+                db_replies_list,
+            )
+        ),
     }
 
 
@@ -91,9 +126,19 @@ def update_comment(
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
     db_comment.body = comment.body
+
+    created_history = models.History(
+        comment_id=db_comment.id,
+        body=comment.body,
+    )
+
     db.commit()
     db.refresh(db_comment)
-    return db_comment
+
+    db.add(created_history)
+    db.commit()
+
+    return _get_comment_response(db, db_comment)
 
 
 def delete_comment(

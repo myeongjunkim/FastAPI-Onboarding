@@ -111,6 +111,14 @@ class WishStockResponse(BaseModel):
     return_rate: float
 
 
+class History(BaseModel):
+    body: str
+    created_at: str
+
+    class Config:
+        orm_mode = True
+
+
 class Comment(BaseModel):
     id: int
     user_id: int
@@ -118,6 +126,7 @@ class Comment(BaseModel):
     body: str
     is_reply: bool
     parent_id: Optional[int]
+    history: list[History]
 
     class Config:
         orm_mode = True

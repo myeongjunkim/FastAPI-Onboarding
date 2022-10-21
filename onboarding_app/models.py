@@ -82,8 +82,18 @@ class Comment(Base):
     # reply = relationship("Comment", backref="reply")
 
 
+class History(Base):
+    __tablename__ = "historys"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    comment_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"))
+    body = Column(String)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+
 User.__table__.create(bind=engine, checkfirst=True)
-Comment.__table__.create(bind=engine, checkfirst=True)
 Stock.__table__.create(bind=engine, checkfirst=True)
 Wishlist.__table__.create(bind=engine, checkfirst=True)
 WishlistXstock.__table__.create(bind=engine, checkfirst=True)
+Comment.__table__.create(bind=engine, checkfirst=True)
+History.__table__.create(bind=engine, checkfirst=True)
