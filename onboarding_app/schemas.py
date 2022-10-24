@@ -126,7 +126,6 @@ class Comment(BaseModel):
     body: str
     is_reply: bool
     parent_id: Optional[int]
-    history: list[History]
 
     class Config:
         orm_mode = True
