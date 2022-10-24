@@ -13,30 +13,53 @@ db = TestingSessionLocal()
 def upsert_stock_to_fakedb():
     new_stock_list = fetch_stocks(file_path="./resources/data_1205_20220930.csv")
     upsert_stock(stock_list=new_stock_list, db=engine)
+    create_wishlists()
+    add_wishstock_in_wishlist()
 
 
-@pytest.fixture(autouse=True)
-def create_wishlist():
+def create_wishlists():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist1 = schemas.WishlistCreate(
         name="wishlist1",
         description="wishlist1 description",
     )
-
+    wishlist2 = schemas.WishlistCreate(
+        name="wishlist2",
+        description="wishlist2 description",
+    )
     wishlist_query.create_wishlist(db=db, current_user=reg1, wishlist=wishlist1)
+    wishlist_query.create_wishlist(db=db, current_user=reg1, wishlist=wishlist2)
+
+
+def add_wishstock_in_wishlist():
+    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+
+    db_stock_list = db.query(models.Stock).limit(10).offset(0).all()
+    db_wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    for i in range(10):
+        wishlist_query.add_stock_to_wishlist(
+            db=db,
+            current_user=reg1,
+            wishlist_id=db_wishlist1.id,
+            wishstock=schemas.WishStockCreate(
+                stock_id=db_stock_list[i].id,
+                purchase_price=db_stock_list[i].price,
+                holding_num=i * 10,
+            ),
+        )
 
 
 def test_add_stock_to_wishlist():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     reg1_token = obtain_token_reg1()
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    wishlist2 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist2")
 
-    db_stock = db.query(models.Stock).filter(models.Stock.id == 1).first()
+    db_stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.post(
-        f"/wishlists/{wishlist1.id}/stocks",
+        f"/wishlists/{wishlist2.id}/stocks",
         json={"stock_id": db_stock.id, "purchase_price": 12332, "holding_num": 10},
         headers={"Authorization": "Bearer " + reg1_token},
     )
@@ -73,20 +96,6 @@ def test_fetch_stock_in_wishlist():
     reg1_token = obtain_token_reg1()
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
-    db_wishstock_list = db.query(models.Stock).limit(10).offset(0).all()
-
-    for i in range(10):
-        wishlist_query.add_stock_to_wishlist(
-            db=db,
-            current_user=reg1,
-            wishlist_id=wishlist1.id,
-            wishstock=schemas.WishStockCreate(
-                stock_id=db_wishstock_list[i].id,
-                purchase_price=db_wishstock_list[i].price,
-                holding_num=i * 10,
-            ),
-        )
-
     # When
     stock_response = client.get(
         f"/wishlists/{wishlist1.id}/stocks",
@@ -103,18 +112,7 @@ def test_get_stock_in_wishlist():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     reg1_token = obtain_token_reg1()
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
-    db_stock = db.query(models.Stock).filter(models.Stock.id == 1).first()
-
-    wishlist_query.add_stock_to_wishlist(
-        db=db,
-        current_user=reg1,
-        wishlist_id=wishlist1.id,
-        wishstock=schemas.WishStockCreate(
-            stock_id=db_stock.id,
-            purchase_price="100000",
-            holding_num=10,
-        ),
-    )
+    db_stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.get(
@@ -133,18 +131,7 @@ def test_update_stock_in_wishlist():
     reg1_token = obtain_token_reg1()
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
-    db_stock = db.query(models.Stock).filter(models.Stock.id == 1).first()
-
-    wishlist_query.add_stock_to_wishlist(
-        db=db,
-        current_user=reg1,
-        wishlist_id=wishlist1.id,
-        wishstock=schemas.WishStockCreate(
-            stock_id=db_stock.id,
-            purchase_price="100000",
-            holding_num=10,
-        ),
-    )
+    db_stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.put(
@@ -165,18 +152,7 @@ def test_delete_stock_in_wishlist():
     reg1_token = obtain_token_reg1()
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
-    db_stock = db.query(models.Stock).filter(models.Stock.id == 1).first()
-
-    wishlist_query.add_stock_to_wishlist(
-        db=db,
-        current_user=reg1,
-        wishlist_id=wishlist1.id,
-        wishstock=schemas.WishStockCreate(
-            stock_id=db_stock.id,
-            purchase_price="100000",
-            holding_num=10,
-        ),
-    )
+    db_stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.delete(
@@ -201,18 +177,6 @@ def test_change_stock_order():
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
     db_stock_list = db.query(models.Stock).limit(10).offset(0).all()
-
-    for i in range(10):
-        wishlist_query.add_stock_to_wishlist(
-            db=db,
-            current_user=reg1,
-            wishlist_id=wishlist1.id,
-            wishstock=schemas.WishStockCreate(
-                stock_id=db_stock_list[i].id,
-                purchase_price=db_stock_list[i].price,
-                holding_num=i * 10,
-            ),
-        )
 
     origin_order = 2
     hope_order = 5
@@ -245,6 +209,7 @@ def test_change_stock_order():
         .order_by(models.WishlistXstock.order_num)
         .all()
     )
+
     for i, wishstock in enumerate(db_wishstock_list):
 
         if i < origin_order or i > hope_order:
