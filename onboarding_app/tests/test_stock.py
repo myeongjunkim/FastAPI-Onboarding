@@ -47,16 +47,15 @@ def _create_wishlists():
 def _add_wishstock_in_wishlist1():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
-    db_stock_list = db.query(models.Stock).limit(10).offset(0).all()
-    db_wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
     for i in range(10):
         wishlist_query.add_stock_to_wishlist(
             db=db,
             current_user=reg1,
-            wishlist_id=db_wishlist1.id,
+            wishlist_id=wishlist1.id,
             wishstock=schemas.WishStockCreate(
-                stock_id=db_stock_list[i].id,
-                purchase_price=db_stock_list[i].price,
+                stock_id=i + 1,
+                purchase_price=(i + 1) * 12000,
                 holding_num=i * 10,
             ),
         )
