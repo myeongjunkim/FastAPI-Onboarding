@@ -184,12 +184,12 @@ def test_delete_stock_in_wishlist():
         headers={"Authorization": "Bearer " + reg1_token},
     )
 
+    # Then
     deleted_wishstock_query_res = db.query(models.WishlistXstock).filter(
         models.WishlistXstock.wishlist_id == wishlist1.id,
         models.WishlistXstock.stock_id == db_stock.id,
     )
 
-    # Then
     assert stock_response.status_code == 200
     assert deleted_wishstock_query_res.first() is None
 
