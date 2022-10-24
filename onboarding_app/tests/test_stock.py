@@ -2,20 +2,31 @@ import pytest
 
 from onboarding_app import models, schemas
 from onboarding_app.queries import user as user_query, wishlist as wishlist_query
-from onboarding_app.tests.conftest import client, engine, TestingSessionLocal
+from onboarding_app.tests.conftest import client, TestingSessionLocal
 from onboarding_app.tests.utils import get_wishlist_by_name
-from scripts.upsert_stock import fetch_stocks, upsert_stock
 
 db = TestingSessionLocal()
 
 
 @pytest.fixture(autouse=True)
-def upsert_stock_to_fakedb():
-    new_stock_list = fetch_stocks(file_path="./resources/data_1205_20220930.csv")
-    upsert_stock(stock_list=new_stock_list, db=engine)
+def create_dumy_data_to_fakedb():
+    _create_db_stock()
     _create_wishlists()
-    _add_wishstock_in_wishlist()
+    _add_wishstock_in_wishlist1()
     client.authenticate("reg1")
+
+
+def _create_db_stock():
+    for i in range(10):
+        stock = models.Stock(
+            name=f"stock{i}",
+            code=f"code{i}",
+            price=(i + 1) * 1000,
+            market="KOSPI",
+        )
+        db.add(stock)
+        db.commit()
+        db.refresh(stock)
 
 
 def _create_wishlists():
@@ -33,7 +44,7 @@ def _create_wishlists():
     wishlist_query.create_wishlist(db=db, current_user=reg1, wishlist=wishlist2)
 
 
-def _add_wishstock_in_wishlist():
+def _add_wishstock_in_wishlist1():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     db_stock_list = db.query(models.Stock).limit(10).offset(0).all()
@@ -51,7 +62,7 @@ def _add_wishstock_in_wishlist():
         )
 
 
-def test_add_stock_to_wishlist():
+def test_add_stock_to_wishlist2():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist2 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist2")
