@@ -179,17 +179,23 @@ def test_delete_stock_in_wishlist():
     client.deauthenticate()
 
 
-def test_change_stock_order():
+@pytest.mark.parametrize(
+    "origin_order, hope_order",
+    (
+        # 범위 내에서 정렬
+        (2, 7),  # Case 1. 낮은 순서에서 높은 순서로 올라가는 경우
+        (5, 2),  # Case 2. 높은 순서에서 낮은 순서로 내려가는 경우
+        (3, 3),  # Case 3. 같은 순서로 정렬하는 경우
+    ),
+)
+def test_change_stock_order(origin_order: int, hope_order: int):
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
     stocks = db.query(models.Stock).limit(10).offset(0).all()
 
-    origin_order = 2
-    hope_order = 5
-
-    db_wishstock = (
+    target_wishstock = (
         db.query(models.WishlistXstock)
         .filter(
             models.WishlistXstock.wishlist_id == wishlist1.id,
@@ -200,7 +206,7 @@ def test_change_stock_order():
 
     # When
     stock_order_response = client.put(
-        f"/wishlists/{wishlist1.id}/stocks/{db_wishstock.stock_id}/order",
+        f"/wishlists/{wishlist1.id}/stocks/{target_wishstock.stock_id}/order",
         params={"hope_order": hope_order},
     )
 
@@ -208,7 +214,7 @@ def test_change_stock_order():
     assert stock_order_response.status_code == 200
     assert stock_order_response.json()["order_num"] == hope_order
 
-    db_wishstock_list = (
+    wishstocks_ordered_by_order_num = (
         db.query(models.WishlistXstock)
         .filter(
             models.WishlistXstock.wishlist_id == wishlist1.id,
@@ -217,12 +223,13 @@ def test_change_stock_order():
         .all()
     )
 
-    for i, wishstock in enumerate(db_wishstock_list):
+    for i, wishstock in enumerate(wishstocks_ordered_by_order_num):
 
-        if i < origin_order or i > hope_order:
+        if i < min(origin_order, hope_order) or i > max(origin_order, hope_order):
             assert wishstock.stock_id == stocks[i].id
         elif i == hope_order:
             assert wishstock.stock_id == stocks[origin_order].id
         else:
-            assert wishstock.stock_id == stocks[i].id + 1
+            gap = 1 if origin_order < hope_order else -1
+            assert wishstock.stock_id == stocks[i].id + gap
     client.deauthenticate()
