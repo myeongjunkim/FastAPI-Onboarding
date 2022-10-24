@@ -1,17 +1,13 @@
 from onboarding_app import models, schemas
 from onboarding_app.queries import user as user_query, wishlist as wishlist_query
 from onboarding_app.tests.conftest import client, TestingSessionLocal
-from onboarding_app.tests.utils import (
-    get_wishlist_by_name,
-    obtain_token_reg1,
-    obtain_token_reg2,
-)
+from onboarding_app.tests.utils import get_wishlist_by_name, obtain_token_reg
 
 
 def test_wishlists_create_success():
     # Given
     db = TestingSessionLocal()
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     # When
@@ -33,7 +29,7 @@ def test_wishlists_create_success():
 
 def test_wishlists_fetch_success():
     # Given
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     db = TestingSessionLocal()
     reg1 = user_query.get_user_by_username(db=TestingSessionLocal(), username="reg1")
 
@@ -61,7 +57,7 @@ def test_wishlists_fetch_success():
 def test_wishlists_get_success():
     # Given
     db = TestingSessionLocal()
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
@@ -87,7 +83,7 @@ def test_wishlists_get_success():
 
 def test_wishlists_get_fail_with_other_user_token():
     # Given
-    other_user_token = obtain_token_reg2()
+    other_user_token = obtain_token_reg("reg2")
 
     db = TestingSessionLocal()
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
@@ -113,7 +109,7 @@ def test_wishlists_get_fail_with_other_user_token():
 def test_wishlists_update_success():
     # Given
     db = TestingSessionLocal()
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
@@ -147,7 +143,7 @@ def test_wishlists_update_success():
 def test_wishlists_delete_success():
     # Given
     db = TestingSessionLocal()
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
@@ -176,7 +172,7 @@ def test_wishlists_delete_success():
 def test_wishlists_update_and_delete_fail_with_other_user_token():
 
     # Given
-    other_user_token = obtain_token_reg2()
+    other_user_token = obtain_token_reg("reg2")
 
     db = TestingSessionLocal()
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
@@ -211,7 +207,7 @@ def test_wishlists_update_and_delete_fail_with_other_user_token():
 def test_change_wishlist_order():
     # Given
     db = TestingSessionLocal()
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
 
     for i in range(10):

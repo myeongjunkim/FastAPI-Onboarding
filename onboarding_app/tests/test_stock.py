@@ -3,7 +3,7 @@ import pytest
 from onboarding_app import models, schemas
 from onboarding_app.queries import user as user_query, wishlist as wishlist_query
 from onboarding_app.tests.conftest import client, engine, TestingSessionLocal
-from onboarding_app.tests.utils import get_wishlist_by_name, obtain_token_reg1
+from onboarding_app.tests.utils import get_wishlist_by_name, obtain_token_reg
 from scripts.upsert_stock import fetch_stocks, upsert_stock
 
 db = TestingSessionLocal()
@@ -52,7 +52,7 @@ def add_wishstock_in_wishlist():
 def test_add_stock_to_wishlist():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     wishlist2 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist2")
 
     db_stock = db.query(models.Stock).first()
@@ -72,7 +72,7 @@ def test_add_stock_to_wishlist():
 def test_add_stock_to_wishlist_fail_case():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
     # When
@@ -93,7 +93,7 @@ def test_add_stock_to_wishlist_fail_case():
 def test_fetch_stock_in_wishlist():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
     # When
@@ -110,7 +110,7 @@ def test_fetch_stock_in_wishlist():
 def test_get_stock_in_wishlist():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
     db_stock = db.query(models.Stock).first()
 
@@ -128,7 +128,7 @@ def test_get_stock_in_wishlist():
 def test_update_stock_in_wishlist():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
     db_stock = db.query(models.Stock).first()
@@ -149,7 +149,7 @@ def test_update_stock_in_wishlist():
 def test_delete_stock_in_wishlist():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
     db_stock = db.query(models.Stock).first()
@@ -173,7 +173,7 @@ def test_delete_stock_in_wishlist():
 def test_change_stock_order():
     # Given
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    reg1_token = obtain_token_reg1()
+    reg1_token = obtain_token_reg("reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
     db_stock_list = db.query(models.Stock).limit(10).offset(0).all()
