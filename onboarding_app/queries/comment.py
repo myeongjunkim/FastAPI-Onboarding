@@ -1,28 +1,24 @@
 from typing import Optional
 
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from onboarding_app import exceptions, models, schemas
 
 
-def _get_comment_response(db: Session, comment: models.Comment):
-    return schemas.Comment(
-        id=comment.id,
-        user_id=comment.user_id,
-        wishlist_id=comment.wishlist_id,
-        body=comment.body,
-        is_reply=comment.is_reply,
-        parent_id=comment.parent_id,
-        history=jsonable_encoder(
-            db.query(models.History)
-            .filter(models.History.comment_id == comment.id)
-            .order_by(text("created_at desc"))
-            .all()
-        ),
+def _validate_accessible_wishlist(db: Session, wishlist_id: int) -> None:
+    wishlist_query_res = db.query(models.Wishlist).filter(
+        models.Wishlist.id == wishlist_id
     )
+    if not wishlist_query_res.first():
+        raise exceptions.DataDoesNotExistError
+
+
+def _validate_accessible_comment(db: Session, comment_id: int) -> models.Comment:
+    comment_query_res = db.query(models.Comment).filter(models.Comment.id == comment_id)
+    if not comment_query_res.first():
+        raise exceptions.DataDoesNotExistError
+    return comment_query_res.first()
 
 
 def create_comment(
@@ -51,7 +47,7 @@ def create_comment(
     db.add(created_history)
     db.commit()
     db.refresh(created_history)
-    return _get_comment_response(db=db, comment=created_comment)
+    return created_comment
 
 
 def fetch_comments(
@@ -60,48 +56,19 @@ def fetch_comments(
     limit: int,
     offset: int,
 ) -> list[models.Comment]:
-
-    db_comment_list = (
+    _validate_accessible_wishlist(db, wishlist_id)
+    return (
         db.query(models.Comment)
         .filter(models.Comment.wishlist_id == wishlist_id)
         .limit(limit)
         .offset(offset)
         .all()
     )
-    return list(
-        map(
-            lambda comment: _get_comment_response(db=db, comment=comment),
-            db_comment_list,
-        )
-    )
 
 
-def fetch_replies(db: Session, wishlist_id: int, parent_id: int):
-
-    db_parent_comment = (
-        db.query(models.Comment).filter(models.Comment.id == parent_id).first()
-    )
-    if not db_parent_comment:
-        raise exceptions.DataDoesNotExistError
-
-    db_replies_list = (
-        db.query(models.Comment)
-        .filter(
-            models.Comment.wishlist_id == wishlist_id,
-            models.Comment.parent_id == parent_id,
-        )
-        .all()
-    )
-
-    return {
-        "comment": _get_comment_response(db, db_parent_comment),
-        "replies": list(
-            map(
-                lambda comment: _get_comment_response(db=db, comment=comment),
-                db_replies_list,
-            )
-        ),
-    }
+def get_comment(db: Session, wishlist_id: int, comment_id: int) -> models.Comment:
+    _validate_accessible_wishlist(db, wishlist_id)
+    return db.query(models.Comment).filter(models.Comment.id == comment_id).first()
 
 
 def update_comment(
@@ -112,17 +79,9 @@ def update_comment(
     comment_id: int,
 ) -> models.Comment:
 
-    wishlist_query_res = db.query(models.Wishlist).filter(
-        models.Wishlist.id == wishlist_id
-    )
-    if not wishlist_query_res.first():
-        raise exceptions.DataDoesNotExistError
+    _validate_accessible_wishlist(db, wishlist_id)
+    db_comment = _validate_accessible_comment(db, comment_id)
 
-    db_comment = (
-        db.query(models.Comment).filter(models.Comment.id == comment_id).first()
-    )
-    if not db_comment:
-        raise exceptions.DataDoesNotExistError
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
     db_comment.body = comment.body
@@ -138,7 +97,7 @@ def update_comment(
     db.add(created_history)
     db.commit()
 
-    return _get_comment_response(db, db_comment)
+    return db_comment
 
 
 def delete_comment(
@@ -148,19 +107,40 @@ def delete_comment(
     comment_id: int,
 ) -> None:
 
-    wishlist_query_res = db.query(models.Wishlist).filter(
-        models.Wishlist.id == wishlist_id
-    )
-    if not wishlist_query_res.first():
-        raise exceptions.DataDoesNotExistError
-
-    db_comment = (
-        db.query(models.Comment).filter(models.Comment.id == comment_id).first()
-    )
-    if not db_comment:
-        raise exceptions.DataDoesNotExistError
+    _validate_accessible_wishlist(db, wishlist_id)
+    db_comment = _validate_accessible_comment(db, comment_id)
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
     db.delete(db_comment)
     db.commit()
     return None
+
+
+def fetch_replies(db: Session, wishlist_id: int, parent_id: int):
+
+    _validate_accessible_wishlist(db, wishlist_id)
+
+    return (
+        db.query(models.Comment)
+        .filter(
+            models.Comment.wishlist_id == wishlist_id,
+            models.Comment.parent_id == parent_id,
+        )
+        .all()
+    )
+
+
+def fetch_history(
+    db: Session, wishlist_id: int, comment_id: int
+) -> list[models.History]:
+
+    _validate_accessible_wishlist(db, wishlist_id)
+
+    return (
+        db.query(models.History)
+        .filter(
+            models.History.comment_id == comment_id,
+        )
+        .order_by(models.History.created_at.desc())
+        .all()
+    )

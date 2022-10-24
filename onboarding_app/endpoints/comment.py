@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -17,10 +18,10 @@ def create_comment(
     db: Session = Depends(database.get_db),
     current_user: schemas.User = Depends(dependencies.get_current_user),
 ):
-    db_comment = comment_query.create_comment(
+
+    return comment_query.create_comment(
         db=db, current_user=current_user, comment=comment, wishlist_id=wishlist_id
     )
-    return db_comment
 
 
 @comment_router.get(
@@ -34,49 +35,28 @@ def fetch_comments(
     offset: int = Query(default=0),
 ):
 
-    db_comment_list = comment_query.fetch_comments(
+    return comment_query.fetch_comments(
         db=db,
         wishlist_id=wishlist_id,
         limit=limit,
         offset=offset,
     )
 
-    return db_comment_list
 
-
-@comment_router.post(
+@comment_router.get(
     "/wishlists/{wishlist_id}/comments/{comment_id}", response_model=schemas.Comment
 )
-def create_reply_to_comment(
+def get_comment(
     wishlist_id: int,
     comment_id: int,
-    comment: schemas.CommentCreate,
     db: Session = Depends(database.get_db),
-    current_user: schemas.User = Depends(dependencies.get_current_user),
 ):
-    db_comment = comment_query.create_comment(
+    db_comment = comment_query.get_comment(
         db=db,
-        current_user=current_user,
-        comment=comment,
         wishlist_id=wishlist_id,
-        parent_id=comment_id,
-        is_reply=True,
+        comment_id=comment_id,
     )
     return db_comment
-
-
-@comment_router.get("/wishlists/{wishlist_id}/comments/{comment_id}")
-def fetch_replies(
-    wishlist_id: int,
-    comment_id: int,
-    db: Session = Depends(database.get_db),
-):
-    db_comment_replies = comment_query.fetch_replies(
-        db=db,
-        wishlist_id=wishlist_id,
-        parent_id=comment_id,
-    )
-    return db_comment_replies
 
 
 @comment_router.put(
@@ -117,4 +97,60 @@ def delete_comment(
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={"message": "Wishlist deleted successfully"},
+    )
+
+
+@comment_router.post(
+    "/wishlists/{wishlist_id}/comments/{comment_id}/replies",
+    response_model=schemas.Comment,
+)
+def create_reply_to_comment(
+    wishlist_id: int,
+    comment_id: int,
+    comment: schemas.CommentCreate,
+    db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
+):
+
+    return comment_query.create_comment(
+        db=db,
+        current_user=current_user,
+        comment=comment,
+        wishlist_id=wishlist_id,
+        parent_id=comment_id,
+        is_reply=True,
+    )
+
+
+@comment_router.get(
+    "/wishlists/{wishlist_id}/comments/{comment_id}/replies",
+    response_model=list[schemas.Comment],
+)
+def fetch_replies(
+    wishlist_id: int,
+    comment_id: int,
+    db: Session = Depends(database.get_db),
+):
+    return comment_query.fetch_replies(
+        db=db,
+        wishlist_id=wishlist_id,
+        parent_id=comment_id,
+    )
+
+
+@comment_router.get(
+    "/wishlists/{wishlist_id}/comments/{comment_id}/history",
+    response_model=list[schemas.History],
+)
+def fetch_history(
+    wishlist_id: int,
+    comment_id: int,
+    db: Session = Depends(database.get_db),
+):
+    return jsonable_encoder(
+        comment_query.fetch_history(
+            db=db,
+            wishlist_id=wishlist_id,
+            comment_id=comment_id,
+        )
     )
