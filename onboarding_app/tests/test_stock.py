@@ -10,13 +10,13 @@ db = TestingSessionLocal()
 
 @pytest.fixture(autouse=True)
 def create_dumy_data_to_fakedb():
-    _create_db_stock()
+    _create_stocks()
     _create_wishlists()
     _add_wishstock_in_wishlist1()
     client.authenticate("reg1")
 
 
-def _create_db_stock():
+def _create_stocks():
     for i in range(10):
         stock = models.Stock(
             name=f"stock{i}",
@@ -66,17 +66,17 @@ def test_add_stock_to_wishlist2():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist2 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist2")
 
-    db_stock = db.query(models.Stock).first()
+    stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.post(
         f"/wishlists/{wishlist2.id}/stocks",
-        json={"stock_id": db_stock.id, "purchase_price": 12332, "holding_num": 10},
+        json={"stock_id": stock.id, "purchase_price": 12332, "holding_num": 10},
     )
 
     # Then
     assert stock_response.status_code == 200
-    assert stock_response.json()["stock"]["name"] == db_stock.name
+    assert stock_response.json()["stock"]["name"] == stock.name
     client.deauthenticate()
 
 
@@ -122,16 +122,16 @@ def test_get_stock_in_wishlist():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
-    db_stock = db.query(models.Stock).first()
+    stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.get(
-        f"/wishlists/{wishlist1.id}/stocks/{db_stock.id}",
+        f"/wishlists/{wishlist1.id}/stocks/{stock.id}",
     )
 
     # Then
     assert stock_response.status_code == 200
-    assert stock_response.json()["stock"]["name"] == db_stock.name
+    assert stock_response.json()["stock"]["name"] == stock.name
     client.deauthenticate()
 
 
@@ -140,11 +140,11 @@ def test_update_stock_in_wishlist():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
-    db_stock = db.query(models.Stock).first()
+    stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.put(
-        f"/wishlists/{wishlist1.id}/stocks/{db_stock.id}",
+        f"/wishlists/{wishlist1.id}/stocks/{stock.id}",
         json={"purchase_price": 120000, "holding_num": 100},
     )
 
@@ -161,17 +161,17 @@ def test_delete_stock_in_wishlist():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
-    db_stock = db.query(models.Stock).first()
+    stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.delete(
-        f"/wishlists/{wishlist1.id}/stocks/{db_stock.id}",
+        f"/wishlists/{wishlist1.id}/stocks/{stock.id}",
     )
 
     # Then
     deleted_wishstock_query_res = db.query(models.WishlistXstock).filter(
         models.WishlistXstock.wishlist_id == wishlist1.id,
-        models.WishlistXstock.stock_id == db_stock.id,
+        models.WishlistXstock.stock_id == stock.id,
     )
 
     assert stock_response.status_code == 200
@@ -184,7 +184,7 @@ def test_change_stock_order():
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
-    db_stock_list = db.query(models.Stock).limit(10).offset(0).all()
+    stocks = db.query(models.Stock).limit(10).offset(0).all()
 
     origin_order = 2
     hope_order = 5
@@ -220,9 +220,9 @@ def test_change_stock_order():
     for i, wishstock in enumerate(db_wishstock_list):
 
         if i < origin_order or i > hope_order:
-            assert wishstock.stock_id == db_stock_list[i].id
+            assert wishstock.stock_id == stocks[i].id
         elif i == hope_order:
-            assert wishstock.stock_id == db_stock_list[origin_order].id
+            assert wishstock.stock_id == stocks[origin_order].id
         else:
-            assert wishstock.stock_id == db_stock_list[i].id + 1
+            assert wishstock.stock_id == stocks[i].id + 1
     client.deauthenticate()
