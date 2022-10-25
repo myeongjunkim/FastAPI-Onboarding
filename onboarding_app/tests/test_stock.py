@@ -13,7 +13,7 @@ client.authenticate("reg1")
 def create_dumy_data_to_fakedb():
     _create_stocks()
     _create_wishlists()
-    _add_wishstock_in_wishlist1()
+    _add_wishstock_in_wishlist()
 
 
 def _create_stocks():
@@ -32,27 +32,29 @@ def _create_stocks():
 def _create_wishlists():
 
     reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = schemas.WishlistCreate(
+    wishlist = schemas.WishlistCreate(
         name="wishlist1",
         description="wishlist1 description",
     )
-    wishlist2 = schemas.WishlistCreate(
-        name="wishlist2",
-        description="wishlist2 description",
+    nothing_in_wishlist = schemas.WishlistCreate(
+        name="nothing_in_wishlist",
+        description="wishlist1 description",
     )
-    wishlist_query.create_wishlist(db=db, current_user=reg, wishlist=wishlist1)
-    wishlist_query.create_wishlist(db=db, current_user=reg, wishlist=wishlist2)
+    wishlist_query.create_wishlist(db=db, current_user=reg, wishlist=wishlist)
+    wishlist_query.create_wishlist(
+        db=db, current_user=reg, wishlist=nothing_in_wishlist
+    )
 
 
-def _add_wishstock_in_wishlist1():
+def _add_wishstock_in_wishlist():
     reg = user_query.get_user_by_username(db=db, username="reg1")
 
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
     for i in range(10):
         wishlist_query.add_stock_to_wishlist(
             db=db,
             current_user=reg,
-            wishlist_id=wishlist1.id,
+            wishlist_id=wishlist.id,
             wishstock=schemas.WishStockCreate(
                 stock_id=i + 1,
                 purchase_price=(i + 1) * 12000,
@@ -61,10 +63,10 @@ def _add_wishstock_in_wishlist1():
         )
 
 
-def test_add_stock_to_wishlist2():
+def test_add_stock_to_wishlist():
     # Given
     reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist2")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="nothing_in_wishlist")
 
     stock = db.query(models.Stock).first()
 
@@ -79,17 +81,17 @@ def test_add_stock_to_wishlist2():
     assert stock_response.json()["stock"]["name"] == stock.name
 
 
-def test_add_stock_to_wishlist_fail_case():
+def test_cannot_add_wrong_stock_to_wishlist():
     # Given
-
     reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist2")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="nothing_in_wishlist")
 
+    wrong_stock_id = 500000
     # When
     stock_response = client.post(
         f"/wishlists/{wishlist.id}/stocks",
         json={
-            "stock_id": 500000,
+            "stock_id": wrong_stock_id,
             "purchase_price": 12332,
             "holding_num": 10,
         },
