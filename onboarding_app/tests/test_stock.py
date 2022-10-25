@@ -6,6 +6,7 @@ from onboarding_app.tests.conftest import client, TestingSessionLocal
 from onboarding_app.tests.utils import get_wishlist_by_name
 
 db = TestingSessionLocal()
+client.authenticate("reg1")
 
 
 @pytest.fixture(autouse=True)
@@ -13,7 +14,6 @@ def create_dumy_data_to_fakedb():
     _create_stocks()
     _create_wishlists()
     _add_wishstock_in_wishlist1()
-    client.authenticate("reg1")
 
 
 def _create_stocks():
@@ -77,7 +77,6 @@ def test_add_stock_to_wishlist2():
     # Then
     assert stock_response.status_code == 200
     assert stock_response.json()["stock"]["name"] == stock.name
-    client.deauthenticate()
 
 
 def test_add_stock_to_wishlist_fail_case():
@@ -98,7 +97,6 @@ def test_add_stock_to_wishlist_fail_case():
 
     # Then
     assert stock_response.status_code == 404
-    client.deauthenticate()
 
 
 def test_fetch_stock_in_wishlist():
@@ -114,7 +112,6 @@ def test_fetch_stock_in_wishlist():
     # Then
     assert stock_response.status_code == 200
     assert len(stock_response.json()) == 10
-    client.deauthenticate()
 
 
 def test_get_stock_in_wishlist():
@@ -132,7 +129,6 @@ def test_get_stock_in_wishlist():
     # Then
     assert stock_response.status_code == 200
     assert stock_response.json()["stock"]["name"] == stock.name
-    client.deauthenticate()
 
 
 def test_update_stock_in_wishlist():
@@ -152,7 +148,6 @@ def test_update_stock_in_wishlist():
     assert stock_response.status_code == 200
     assert stock_response.json()["purchase_price"] == 120000
     assert stock_response.json()["holding_num"] == 100
-    client.deauthenticate()
 
 
 def test_delete_stock_in_wishlist():
@@ -176,7 +171,6 @@ def test_delete_stock_in_wishlist():
 
     assert stock_response.status_code == 200
     assert deleted_wishstock_query_res.first() is None
-    client.deauthenticate()
 
 
 @pytest.mark.parametrize(
@@ -193,6 +187,7 @@ def test_change_stock_order(origin_order: int, hope_order: int):
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
 
+    print(wishlist1.user_id, reg1.id)
     stocks = db.query(models.Stock).limit(10).offset(0).all()
 
     target_wishstock = (
@@ -232,4 +227,3 @@ def test_change_stock_order(origin_order: int, hope_order: int):
         else:
             gap = 1 if origin_order < hope_order else -1
             assert wishstock.stock_id == stocks[i].id + gap
-    client.deauthenticate()

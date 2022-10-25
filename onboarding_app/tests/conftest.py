@@ -1,5 +1,4 @@
 import pytest
-from fastapi import Header
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -19,12 +18,12 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 class TestClientWithAuth(TestClient):
-    def authenticate(self, reg: str):
-        token = obtain_token_reg(reg)
+    def authenticate(self, username: str):
+        token = obtain_token_reg(username)
         self.headers["Authorization"] = f"Bearer {token}"
 
     def deauthenticate(self):
-        self.headers["Authorization"] = Header(None)
+        self.headers["Authorization"] = None
 
 
 def fake_db():

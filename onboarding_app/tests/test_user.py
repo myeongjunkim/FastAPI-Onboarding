@@ -2,6 +2,8 @@ from onboarding_app.queries import user as user_query
 from onboarding_app.tests.conftest import client, TestingSessionLocal
 from onboarding_app.tests.utils import obtain_token_admin, obtain_token_reg
 
+client.deauthenticate()
+
 
 def test_signup_success():
     # When
