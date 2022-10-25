@@ -31,7 +31,7 @@ def _create_stocks():
 
 def _create_wishlists():
 
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
     wishlist1 = schemas.WishlistCreate(
         name="wishlist1",
         description="wishlist1 description",
@@ -40,18 +40,18 @@ def _create_wishlists():
         name="wishlist2",
         description="wishlist2 description",
     )
-    wishlist_query.create_wishlist(db=db, current_user=reg1, wishlist=wishlist1)
-    wishlist_query.create_wishlist(db=db, current_user=reg1, wishlist=wishlist2)
+    wishlist_query.create_wishlist(db=db, current_user=reg, wishlist=wishlist1)
+    wishlist_query.create_wishlist(db=db, current_user=reg, wishlist=wishlist2)
 
 
 def _add_wishstock_in_wishlist1():
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
 
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    wishlist1 = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
     for i in range(10):
         wishlist_query.add_stock_to_wishlist(
             db=db,
-            current_user=reg1,
+            current_user=reg,
             wishlist_id=wishlist1.id,
             wishstock=schemas.WishStockCreate(
                 stock_id=i + 1,
@@ -63,14 +63,14 @@ def _add_wishstock_in_wishlist1():
 
 def test_add_stock_to_wishlist2():
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist2 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist2")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist2")
 
     stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.post(
-        f"/wishlists/{wishlist2.id}/stocks",
+        f"/wishlists/{wishlist.id}/stocks",
         json={"stock_id": stock.id, "purchase_price": 12332, "holding_num": 10},
     )
 
@@ -82,12 +82,12 @@ def test_add_stock_to_wishlist2():
 def test_add_stock_to_wishlist_fail_case():
     # Given
 
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist2")
 
     # When
     stock_response = client.post(
-        f"/wishlists/{wishlist1.id}/stocks",
+        f"/wishlists/{wishlist.id}/stocks",
         json={
             "stock_id": 500000,
             "purchase_price": 12332,
@@ -101,12 +101,12 @@ def test_add_stock_to_wishlist_fail_case():
 
 def test_fetch_stock_in_wishlist():
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
 
     # When
     stock_response = client.get(
-        f"/wishlists/{wishlist1.id}/stocks",
+        f"/wishlists/{wishlist.id}/stocks",
     )
 
     # Then
@@ -116,14 +116,14 @@ def test_fetch_stock_in_wishlist():
 
 def test_get_stock_in_wishlist():
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
 
     stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.get(
-        f"/wishlists/{wishlist1.id}/stocks/{stock.id}",
+        f"/wishlists/{wishlist.id}/stocks/{stock.id}",
     )
 
     # Then
@@ -133,14 +133,14 @@ def test_get_stock_in_wishlist():
 
 def test_update_stock_in_wishlist():
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
 
     stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.put(
-        f"/wishlists/{wishlist1.id}/stocks/{stock.id}",
+        f"/wishlists/{wishlist.id}/stocks/{stock.id}",
         json={"purchase_price": 120000, "holding_num": 100},
     )
 
@@ -153,19 +153,19 @@ def test_update_stock_in_wishlist():
 def test_delete_stock_in_wishlist():
     # Given
 
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
 
     stock = db.query(models.Stock).first()
 
     # When
     stock_response = client.delete(
-        f"/wishlists/{wishlist1.id}/stocks/{stock.id}",
+        f"/wishlists/{wishlist.id}/stocks/{stock.id}",
     )
 
     # Then
     deleted_wishstock_query_res = db.query(models.WishlistXstock).filter(
-        models.WishlistXstock.wishlist_id == wishlist1.id,
+        models.WishlistXstock.wishlist_id == wishlist.id,
         models.WishlistXstock.stock_id == stock.id,
     )
 
@@ -184,16 +184,16 @@ def test_delete_stock_in_wishlist():
 )
 def test_change_stock_order(origin_order: int, hope_order: int):
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
 
-    print(wishlist1.user_id, reg1.id)
+    print(wishlist.user_id, reg.id)
     stocks = db.query(models.Stock).limit(10).offset(0).all()
 
     target_wishstock = (
         db.query(models.WishlistXstock)
         .filter(
-            models.WishlistXstock.wishlist_id == wishlist1.id,
+            models.WishlistXstock.wishlist_id == wishlist.id,
             models.WishlistXstock.order_num == origin_order,
         )
         .first()
@@ -201,7 +201,7 @@ def test_change_stock_order(origin_order: int, hope_order: int):
 
     # When
     stock_order_response = client.put(
-        f"/wishlists/{wishlist1.id}/stocks/{target_wishstock.stock_id}/order",
+        f"/wishlists/{wishlist.id}/stocks/{target_wishstock.stock_id}/order",
         params={"hope_order": hope_order},
     )
 
@@ -212,7 +212,7 @@ def test_change_stock_order(origin_order: int, hope_order: int):
     wishstocks_ordered_by_order_num = (
         db.query(models.WishlistXstock)
         .filter(
-            models.WishlistXstock.wishlist_id == wishlist1.id,
+            models.WishlistXstock.wishlist_id == wishlist.id,
         )
         .order_by(models.WishlistXstock.order_num)
         .all()
