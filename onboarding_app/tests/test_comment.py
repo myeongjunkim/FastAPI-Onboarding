@@ -20,56 +20,54 @@ def upsert_stock_to_fakedb():
 
 
 def _create_wishlists():
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = schemas.WishlistCreate(
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = schemas.WishlistCreate(
         name="wishlist1",
         description="wishlist1 description",
     )
-    wishlist_query.create_wishlist(db=db, current_user=reg1, wishlist=wishlist1)
+    wishlist_query.create_wishlist(db=db, current_user=reg, wishlist=wishlist)
 
 
 def _add_comments_in_wishlist1():
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
 
-    wishlist1 = get_wishlist_by_name(db=db, current_user=reg1, name="wishlist1")
     for i in range(10):
         comment_query.create_comment(
             db=db,
-            current_user=reg1,
+            current_user=reg,
             comment=schemas.CommentCreate(body=f"comment{i}"),
-            wishlist_id=wishlist1.id,
+            wishlist_id=wishlist.id,
         )
 
 
 def _add_replies_in_comment1():
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    comment = db.query(models.Comment).filter(models.Comment.body == "comment1").first()
 
-    comment1 = (
-        db.query(models.Comment).filter(models.Comment.body == "comment1").first()
-    )
     for i in range(10):
         comment_query.create_comment(
             db=db,
-            current_user=reg1,
+            current_user=reg,
             comment=schemas.CommentCreate(body=f"replies{i}"),
-            wishlist_id=comment1.wishlist_id,
-            parent_id=comment1.id,
+            wishlist_id=comment.wishlist_id,
+            parent_id=comment.id,
             is_reply=True,
         )
 
 
-def test_create_comment():
+def test_to_create_comment():
     # Given
     db = TestingSessionLocal()
-    reg1_token = obtain_token_reg("reg1")
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+    reg_token = obtain_token_reg("reg1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg)
 
     # When
     comment_response = client.post(
-        f"/wishlists/{wishlist1.id}/comments",
+        f"/wishlists/{wishlist.id}/comments",
         json={"body": "body1"},
-        headers={"Authorization": "Bearer " + reg1_token},
+        headers={"Authorization": "Bearer " + reg_token},
     )
 
     # Then
@@ -79,14 +77,14 @@ def test_create_comment():
     assert comment_response.json()["is_reply"] is False
 
 
-def test_fetch_comments():
+def test_to_fetch_comments():
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg)
 
     # When
     comment_fetch_response = client.get(
-        f"/wishlists/{wishlist1.id}/comments",
+        f"/wishlists/{wishlist.id}/comments",
     )
 
     # Then
@@ -94,17 +92,15 @@ def test_fetch_comments():
     assert len(comment_fetch_response.json()) == 10
 
 
-def test_get_comment():
+def test_to_get_comment():
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg)
 
-    comment1 = (
-        db.query(models.Comment).filter(models.Comment.body == "comment1").first()
-    )
+    comment = db.query(models.Comment).filter(models.Comment.body == "comment1").first()
     # When
     comment_get_response = client.get(
-        f"/wishlists/{wishlist1.id}/comments/{comment1.id}",
+        f"/wishlists/{wishlist1.id}/comments/{comment.id}",
     )
 
     # Then
@@ -112,45 +108,43 @@ def test_get_comment():
     assert comment_get_response.json()["body"] == "comment1"
 
 
-def test_update_comment():
+def test_to_update_comment():
     # Given
-    reg1_token = obtain_token_reg("reg1")
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+    reg_token = obtain_token_reg("reg1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg)
 
-    comment1 = (
-        db.query(models.Comment).filter(models.Comment.body == "comment1").first()
-    )
+    comment = db.query(models.Comment).filter(models.Comment.body == "comment1").first()
 
     # When
     update_response = client.put(
-        f"/wishlists/{wishlist1.id}/comments/{comment1.id}",
-        json={"body": "updated by reg2"},
-        headers={"Authorization": "Bearer " + reg1_token},
+        f"/wishlists/{wishlist.id}/comments/{comment.id}",
+        json={"body": "updated"},
+        headers={"Authorization": "Bearer " + reg_token},
     )
 
     # Then
     assert update_response.status_code == 200
-    assert update_response.json()["body"] == "updated by reg2"
+    assert update_response.json()["body"] == "updated"
 
 
-def test_delete_comment():
+def test_to_delete_comment_from_other_wishlist():
     # Given
     reg2_token = obtain_token_reg("reg2")
     reg1 = user_query.get_user_by_username(db=db, username="reg1")
     reg2 = user_query.get_user_by_username(db=db, username="reg2")
-    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+    reg1_wishlist = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
 
     reg2_comment = comment_query.create_comment(
         db=db,
         current_user=reg2,
         comment=schemas.CommentCreate(body="comment written by reg2"),
-        wishlist_id=wishlist1.id,
+        wishlist_id=reg1_wishlist.id,
     )
 
     # When
     delete_response = client.delete(
-        f"/wishlists/{wishlist1.id}/comments/{reg2_comment.id}",
+        f"/wishlists/{reg1_wishlist.id}/comments/{reg2_comment.id}",
         headers={"Authorization": "Bearer " + reg2_token},
     )
 
@@ -163,42 +157,38 @@ def test_delete_comment():
     assert deleted_comment is None
 
 
-def test_create_reply_to_comment():
+def test_to_create_reply_to_comment():
     # Given
-    reg1_token = obtain_token_reg("reg1")
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+    reg_token = obtain_token_reg("reg1")
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg)
 
-    comment1 = (
-        db.query(models.Comment).filter(models.Comment.body == "comment1").first()
-    )
+    comment = db.query(models.Comment).filter(models.Comment.body == "comment1").first()
 
     # When
     reply_response = client.post(
-        f"/wishlists/{wishlist1.id}/comments/{comment1.id}/replies",
+        f"/wishlists/{wishlist.id}/comments/{comment.id}/replies",
         json={"body": "reply"},
-        headers={"Authorization": "Bearer " + reg1_token},
+        headers={"Authorization": "Bearer " + reg_token},
     )
 
     # Then
     assert reply_response.status_code == 200
     assert reply_response.json()["body"] == "reply"
-    assert reply_response.json()["parent_id"] == comment1.id
+    assert reply_response.json()["parent_id"] == comment.id
     assert reply_response.json()["is_reply"] is True
 
 
-def test_fetch_replies():
+def test_to_fetch_replies():
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg)
 
-    comment1 = (
-        db.query(models.Comment).filter(models.Comment.body == "comment1").first()
-    )
+    comment = db.query(models.Comment).filter(models.Comment.body == "comment1").first()
 
     # When
     reply_fetch_response = client.get(
-        f"/wishlists/{wishlist1.id}/comments/{comment1.id}/replies",
+        f"/wishlists/{wishlist.id}/comments/{comment.id}/replies",
     )
 
     # Then
@@ -206,27 +196,25 @@ def test_fetch_replies():
     assert len(reply_fetch_response.json()) == 10
 
 
-def test_fetch_history():
+def test_to_fetch_history():
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist1 = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg1)
+    reg = user_query.get_user_by_username(db=db, username="reg1")
+    wishlist = get_wishlist_by_name(db=db, name="wishlist1", current_user=reg)
 
-    comment1 = (
-        db.query(models.Comment).filter(models.Comment.body == "comment1").first()
-    )
+    comment = db.query(models.Comment).filter(models.Comment.body == "comment1").first()
 
     for i in range(3):
         comment_query.update_comment(
             db=db,
-            current_user=reg1,
+            current_user=reg,
             comment=schemas.CommentCreate(body=f"updated {i}"),
-            wishlist_id=wishlist1.id,
-            comment_id=comment1.id,
+            wishlist_id=wishlist.id,
+            comment_id=comment.id,
         )
 
     # When
     history_fetch_response = client.get(
-        f"/wishlists/{wishlist1.id}/comments/{comment1.id}/history",
+        f"/wishlists/{wishlist.id}/comments/{comment.id}/history",
     )
 
     # Then
