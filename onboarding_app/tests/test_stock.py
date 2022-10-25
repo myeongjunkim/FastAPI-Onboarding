@@ -189,7 +189,6 @@ def test_change_stock_order(origin_order: int, hope_order: int):
     reg = user_query.get_user_by_username(db=db, username="reg1")
     wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
 
-    print(wishlist.user_id, reg.id)
     stocks = db.query(models.Stock).limit(10).offset(0).all()
 
     target_wishstock = (
