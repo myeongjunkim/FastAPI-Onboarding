@@ -1,6 +1,8 @@
 from onboarding_app.queries import user as user_query
 from onboarding_app.tests.conftest import client, TestingSessionLocal
-from onboarding_app.tests.utils import obtain_token_admin, obtain_token_reg1
+from onboarding_app.tests.utils import obtain_token_admin, obtain_token_reg
+
+client.deauthenticate()
 
 
 def test_signup_success():
@@ -39,7 +41,7 @@ def test_login_success():
 def test_only_admin_can_fetch_users():
     # Given
     admin_token = obtain_token_admin()
-    user_token = obtain_token_reg1()
+    user_token = obtain_token_reg("reg1")
 
     # When
     response_users_by_admin = client.get(
@@ -60,7 +62,7 @@ def test_only_admin_can_fetch_users():
 def test_only_admin_can_get_user():
     # Given
     admin_token = obtain_token_admin()
-    user_token = obtain_token_reg1()
+    user_token = obtain_token_reg("reg1")
     check_user = user_query.get_user_by_username(
         db=TestingSessionLocal(), username="reg1"
     )

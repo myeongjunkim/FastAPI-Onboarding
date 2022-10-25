@@ -7,6 +7,7 @@ from onboarding_app import schemas
 from onboarding_app.database import Base, get_db
 from onboarding_app.main import app
 from onboarding_app.queries import user as user_query
+from onboarding_app.tests.utils import obtain_token_reg
 
 TEST_DATABASE_URL = "sqlite:///./onboarding_app/tests/fake.db"
 
@@ -14,6 +15,15 @@ TEST_DATABASE_URL = "sqlite:///./onboarding_app/tests/fake.db"
 engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
 Base.metadata.create_all(bind=engine)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+class TestClientWithAuth(TestClient):
+    def authenticate(self, username: str):
+        token = obtain_token_reg(username)
+        self.headers["Authorization"] = f"Bearer {token}"
+
+    def deauthenticate(self):
+        self.headers["Authorization"] = None
 
 
 def fake_db():
@@ -25,7 +35,7 @@ def fake_db():
 
 
 app.dependency_overrides[get_db] = fake_db
-client = TestClient(app)
+client = TestClientWithAuth(app)
 
 
 @pytest.fixture(autouse=True)
