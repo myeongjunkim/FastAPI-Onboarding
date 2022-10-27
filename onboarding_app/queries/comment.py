@@ -14,7 +14,7 @@ def _validate_accessible_wishlist(db: Session, wishlist_id: int) -> None:
         raise exceptions.DataDoesNotExistError
 
 
-def _validate_accessible_comment(db: Session, comment_id: int) -> models.Comment:
+def _get_accessible_comment(db: Session, comment_id: int) -> models.Comment:
     comment_query_res = db.query(models.Comment).filter(models.Comment.id == comment_id)
     if not comment_query_res.first():
         raise exceptions.DataDoesNotExistError
@@ -79,7 +79,7 @@ def update_comment(
 ) -> models.Comment:
 
     _validate_accessible_wishlist(db, wishlist_id)
-    db_comment = _validate_accessible_comment(db, comment_id)
+    db_comment = _get_accessible_comment(db, comment_id)
 
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
@@ -104,7 +104,7 @@ def delete_comment(
 ) -> None:
 
     _validate_accessible_wishlist(db, wishlist_id)
-    db_comment = _validate_accessible_comment(db, comment_id)
+    db_comment = _get_accessible_comment(db, comment_id)
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
     db.delete(db_comment)
