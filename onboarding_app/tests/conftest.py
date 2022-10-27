@@ -9,7 +9,7 @@ from onboarding_app.main import app
 from onboarding_app.queries import user as user_query
 from onboarding_app.tests.utils import obtain_token_reg
 
-TEST_DATABASE_URL = "sqlite:///./onboarding_app/tests/fake.db"
+TEST_DATABASE_URL = "sqlite:///./onboarding_app/fake.db"
 
 
 engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
