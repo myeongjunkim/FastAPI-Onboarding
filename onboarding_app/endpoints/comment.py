@@ -28,9 +28,8 @@ def create_comment(
     "/wishlists/{wishlist_id}/comments", response_model=list[schemas.Comment]
 )
 def fetch_comments(
-    *,
-    db: Session = Depends(database.get_db),
     wishlist_id: int,
+    db: Session = Depends(database.get_db),
     limit: int = Query(default=10),
     offset: int = Query(default=0),
 ):
