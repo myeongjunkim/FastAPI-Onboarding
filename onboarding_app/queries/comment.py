@@ -33,7 +33,7 @@ def create_comment(
     created_comment = models.Comment(
         user_id=current_user.id,
         wishlist_id=wishlist_id,
-        body=comment.body,
+        content=comment.content,
         parent_id=parent_id,
         is_reply=is_reply,
     )
@@ -42,7 +42,7 @@ def create_comment(
     db.flush()
 
     created_history = models.History(
-        comment_id=created_comment.id, body=created_comment.body
+        comment_id=created_comment.id, content=created_comment.content
     )
 
     db.add(created_history)
@@ -88,11 +88,11 @@ def update_comment(
 
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
-    db_comment.body = comment.body
+    db_comment.content = comment.content
 
     created_history = models.History(
         comment_id=db_comment.id,
-        body=comment.body,
+        content=comment.content,
     )
 
     db.add(created_history)

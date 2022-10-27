@@ -112,7 +112,7 @@ class WishStockResponse(BaseModel):
 
 
 class History(BaseModel):
-    body: str
+    content: str
     created_at: str
 
     class Config:
@@ -123,7 +123,7 @@ class Comment(BaseModel):
     id: int
     user_id: int
     wishlist_id: int
-    body: str
+    content: str
     is_reply: bool
     parent_id: Optional[int]
 
@@ -132,4 +132,4 @@ class Comment(BaseModel):
 
 
 class CommentCreate(BaseModel):
-    body: str
+    content: str

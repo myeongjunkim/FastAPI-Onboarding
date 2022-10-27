@@ -75,7 +75,7 @@ class Comment(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     wishlist_id = Column(Integer, ForeignKey("wishlists.id", ondelete="CASCADE"))
-    body = Column(String)
+    content = Column(String)
     parent_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"))
     is_reply = Column(Boolean)
 
@@ -87,7 +87,7 @@ class History(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     comment_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"))
-    body = Column(String)
+    content = Column(String)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
 
 
