@@ -37,10 +37,14 @@ def create_comment(
         parent_id=parent_id,
         is_reply=is_reply,
     )
+
     db.add(created_comment)
     db.flush()
 
-    created_history = models.History(comment_id=created_comment.id, body=comment.body)
+    created_history = models.History(
+        comment_id=created_comment.id, body=created_comment.body
+    )
+
     db.add(created_history)
     db.flush()
 
@@ -66,7 +70,9 @@ def fetch_comments(
 
 def get_comment(db: Session, wishlist_id: int, comment_id: int) -> models.Comment:
     _validate_accessible_wishlist(db, wishlist_id)
-    return db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+    db_comment = _get_accessible_comment(db, comment_id)
+
+    return db.query(models.Comment).filter(models.Comment.id == db_comment).first()
 
 
 def update_comment(
@@ -114,15 +120,9 @@ def delete_comment(
 def fetch_replies(db: Session, wishlist_id: int, parent_id: int):
 
     _validate_accessible_wishlist(db, wishlist_id)
+    parent_comment = _get_accessible_comment(db, parent_id)
 
-    return (
-        db.query(models.Comment)
-        .filter(
-            models.Comment.wishlist_id == wishlist_id,
-            models.Comment.parent_id == parent_id,
-        )
-        .all()
-    )
+    return parent_comment.replies
 
 
 def fetch_history(
@@ -130,11 +130,12 @@ def fetch_history(
 ) -> list[models.History]:
 
     _validate_accessible_wishlist(db, wishlist_id)
+    db_comment = _get_accessible_comment(db, comment_id)
 
     return (
         db.query(models.History)
         .filter(
-            models.History.comment_id == comment_id,
+            models.History.comment_id == db_comment.id,
         )
         .order_by(models.History.created_at.desc())
         .all()

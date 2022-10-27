@@ -79,7 +79,7 @@ class Comment(Base):
     parent_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"))
     is_reply = Column(Boolean)
 
-    replis = relationship("Comment")
+    replies = relationship("Comment")
 
 
 class History(Base):
