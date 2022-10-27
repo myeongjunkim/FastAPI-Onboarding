@@ -13,13 +13,13 @@ db = TestingSessionLocal()
 
 
 @pytest.fixture(autouse=True)
-def upsert_stock_to_fakedb():
-    _create_wishlists()
-    _add_comments_in_wishlist1()
-    _add_replies_in_comment1()
+def make_dumy_data():
+    _create_wishlist()
+    _add_comments_in_wishlist()
+    _add_replies_in_comment()
 
 
-def _create_wishlists():
+def _create_wishlist():
     reg = user_query.get_user_by_username(db=db, username="reg1")
     wishlist = schemas.WishlistCreate(
         name="wishlist1",
@@ -28,7 +28,7 @@ def _create_wishlists():
     wishlist_query.create_wishlist(db=db, current_user=reg, wishlist=wishlist)
 
 
-def _add_comments_in_wishlist1():
+def _add_comments_in_wishlist():
     reg = user_query.get_user_by_username(db=db, username="reg1")
     wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
 
@@ -41,7 +41,7 @@ def _add_comments_in_wishlist1():
         )
 
 
-def _add_replies_in_comment1():
+def _add_replies_in_comment():
     reg = user_query.get_user_by_username(db=db, username="reg1")
     comment = db.query(models.Comment).filter(models.Comment.body == "comment1").first()
 
