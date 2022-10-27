@@ -1,6 +1,5 @@
 from typing import Optional
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from onboarding_app import exceptions, models, schemas
@@ -29,22 +28,22 @@ def create_comment(
     parent_id: Optional[int] = None,
     is_reply: bool = False,
 ) -> models.Comment:
-    try:
-        created_comment = models.Comment(
-            user_id=current_user.id,
-            wishlist_id=wishlist_id,
-            body=comment.body,
-            parent_id=parent_id,
-            is_reply=is_reply,
-        )
 
-        db.add(created_comment)
-        db.flush()
-    except IntegrityError:
-        raise exceptions.DuplicatedError
+    _validate_accessible_wishlist(db, wishlist_id)
+    created_comment = models.Comment(
+        user_id=current_user.id,
+        wishlist_id=wishlist_id,
+        body=comment.body,
+        parent_id=parent_id,
+        is_reply=is_reply,
+    )
+    db.add(created_comment)
+    db.flush()
+
     created_history = models.History(comment_id=created_comment.id, body=comment.body)
     db.add(created_history)
     db.flush()
+
     db.commit()
     return created_comment
 
