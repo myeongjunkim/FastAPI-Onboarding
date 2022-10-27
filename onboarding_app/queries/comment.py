@@ -39,14 +39,13 @@ def create_comment(
         )
 
         db.add(created_comment)
-        db.commit()
-        db.refresh(created_comment)
+        db.flush()
     except IntegrityError:
         raise exceptions.DuplicatedError
     created_history = models.History(comment_id=created_comment.id, body=comment.body)
     db.add(created_history)
+    db.flush()
     db.commit()
-    db.refresh(created_history)
     return created_comment
 
 
@@ -90,9 +89,6 @@ def update_comment(
         comment_id=db_comment.id,
         body=comment.body,
     )
-
-    db.commit()
-    db.refresh(db_comment)
 
     db.add(created_history)
     db.commit()
