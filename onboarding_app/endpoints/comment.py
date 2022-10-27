@@ -30,6 +30,7 @@ def create_comment(
 def fetch_comments(
     wishlist_id: int,
     db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
     limit: int = Query(default=10),
     offset: int = Query(default=0),
 ):
@@ -37,6 +38,7 @@ def fetch_comments(
     return comment_query.fetch_comments(
         db=db,
         wishlist_id=wishlist_id,
+        current_user=current_user,
         limit=limit,
         offset=offset,
     )
@@ -48,11 +50,13 @@ def fetch_comments(
 def get_comment(
     wishlist_id: int,
     comment_id: int,
+    current_user: schemas.User = Depends(dependencies.get_current_user),
     db: Session = Depends(database.get_db),
 ):
     db_comment = comment_query.get_comment(
         db=db,
         wishlist_id=wishlist_id,
+        current_user=current_user,
         comment_id=comment_id,
     )
     return db_comment
@@ -129,9 +133,11 @@ def fetch_replies(
     wishlist_id: int,
     comment_id: int,
     db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
 ):
     return comment_query.fetch_replies(
         db=db,
+        current_user=current_user,
         wishlist_id=wishlist_id,
         parent_id=comment_id,
     )
@@ -145,10 +151,12 @@ def fetch_history(
     wishlist_id: int,
     comment_id: int,
     db: Session = Depends(database.get_db),
+    current_user: schemas.User = Depends(dependencies.get_current_user),
 ):
     return jsonable_encoder(
         comment_query.fetch_history(
             db=db,
+            current_user=current_user,
             wishlist_id=wishlist_id,
             comment_id=comment_id,
         )

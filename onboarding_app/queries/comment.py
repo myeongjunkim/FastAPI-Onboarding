@@ -5,12 +5,16 @@ from sqlalchemy.orm import Session
 from onboarding_app import exceptions, models, schemas
 
 
-def _validate_accessible_wishlist(db: Session, wishlist_id: int) -> None:
-    wishlist_query_res = db.query(models.Wishlist).filter(
-        models.Wishlist.id == wishlist_id
+def _validate_accessible_wishlist(
+    db: Session, wishlist_id: int, current_user: schemas.User
+) -> None:
+    wishlist = (
+        db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id).first()
     )
-    if not wishlist_query_res.first():
+    if not wishlist:
         raise exceptions.DataDoesNotExistError
+    if not wishlist.is_open and wishlist.user_id != current_user.id:
+        raise exceptions.PermissionDeniedError
 
 
 def _get_accessible_comment(db: Session, comment_id: int) -> models.Comment:
@@ -29,7 +33,7 @@ def create_comment(
     is_reply: bool = False,
 ) -> models.Comment:
 
-    _validate_accessible_wishlist(db, wishlist_id)
+    _validate_accessible_wishlist(db, wishlist_id, current_user)
     created_comment = models.Comment(
         user_id=current_user.id,
         wishlist_id=wishlist_id,
@@ -55,10 +59,11 @@ def create_comment(
 def fetch_comments(
     db: Session,
     wishlist_id: int,
+    current_user: schemas.User,
     limit: int,
     offset: int,
 ) -> list[models.Comment]:
-    _validate_accessible_wishlist(db, wishlist_id)
+    _validate_accessible_wishlist(db, wishlist_id, current_user)
     return (
         db.query(models.Comment)
         .filter(models.Comment.wishlist_id == wishlist_id)
@@ -68,11 +73,16 @@ def fetch_comments(
     )
 
 
-def get_comment(db: Session, wishlist_id: int, comment_id: int) -> models.Comment:
-    _validate_accessible_wishlist(db, wishlist_id)
+def get_comment(
+    db: Session,
+    wishlist_id: int,
+    comment_id: int,
+    current_user: schemas.User,
+) -> models.Comment:
+    _validate_accessible_wishlist(db, wishlist_id, current_user)
     db_comment = _get_accessible_comment(db, comment_id)
 
-    return db.query(models.Comment).filter(models.Comment.id == db_comment).first()
+    return db_comment
 
 
 def update_comment(
@@ -83,7 +93,7 @@ def update_comment(
     comment_id: int,
 ) -> models.Comment:
 
-    _validate_accessible_wishlist(db, wishlist_id)
+    _validate_accessible_wishlist(db, wishlist_id, current_user)
     db_comment = _get_accessible_comment(db, comment_id)
 
     if db_comment.user_id != current_user.id:
@@ -108,7 +118,7 @@ def delete_comment(
     comment_id: int,
 ) -> None:
 
-    _validate_accessible_wishlist(db, wishlist_id)
+    _validate_accessible_wishlist(db, wishlist_id, current_user)
     db_comment = _get_accessible_comment(db, comment_id)
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
@@ -117,19 +127,21 @@ def delete_comment(
     return None
 
 
-def fetch_replies(db: Session, wishlist_id: int, parent_id: int):
+def fetch_replies(
+    db: Session, wishlist_id: int, parent_id: int, current_user: schemas.User
+) -> list[models.Comment]:
 
-    _validate_accessible_wishlist(db, wishlist_id)
+    _validate_accessible_wishlist(db, wishlist_id, current_user)
     parent_comment = _get_accessible_comment(db, parent_id)
 
     return parent_comment.replies
 
 
 def fetch_history(
-    db: Session, wishlist_id: int, comment_id: int
+    db: Session, wishlist_id: int, comment_id: int, current_user: schemas.User
 ) -> list[models.History]:
 
-    _validate_accessible_wishlist(db, wishlist_id)
+    _validate_accessible_wishlist(db, wishlist_id, current_user)
     db_comment = _get_accessible_comment(db, comment_id)
 
     return (
