@@ -17,8 +17,12 @@ def _validate_accessible_wishlist(
         raise exceptions.PermissionDeniedError
 
 
-def _get_accessible_comment(db: Session, comment_id: int) -> models.Comment:
-    comment_query_res = db.query(models.Comment).filter(models.Comment.id == comment_id)
+def _get_accessible_comment(
+    db: Session, wishlist_id: int, comment_id: int
+) -> models.Comment:
+    comment_query_res = db.query(models.Comment).filter(
+        models.Comment.wishlist_id == wishlist_id, models.Comment.id == comment_id
+    )
     if not comment_query_res.first():
         raise exceptions.DataDoesNotExistError
     return comment_query_res.first()
@@ -80,7 +84,7 @@ def get_comment(
     current_user: schemas.User,
 ) -> models.Comment:
     _validate_accessible_wishlist(db, wishlist_id, current_user)
-    db_comment = _get_accessible_comment(db, comment_id)
+    db_comment = _get_accessible_comment(db, wishlist_id, comment_id)
 
     return db_comment
 
@@ -94,7 +98,7 @@ def update_comment(
 ) -> models.Comment:
 
     _validate_accessible_wishlist(db, wishlist_id, current_user)
-    db_comment = _get_accessible_comment(db, comment_id)
+    db_comment = _get_accessible_comment(db, wishlist_id, comment_id)
 
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
@@ -119,7 +123,7 @@ def delete_comment(
 ) -> None:
 
     _validate_accessible_wishlist(db, wishlist_id, current_user)
-    db_comment = _get_accessible_comment(db, comment_id)
+    db_comment = _get_accessible_comment(db, wishlist_id, comment_id)
     if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
     db.delete(db_comment)
@@ -132,7 +136,7 @@ def fetch_replies(
 ) -> list[models.Comment]:
 
     _validate_accessible_wishlist(db, wishlist_id, current_user)
-    parent_comment = _get_accessible_comment(db, parent_id)
+    parent_comment = _get_accessible_comment(db, wishlist_id, parent_id)
 
     return parent_comment.replies
 
@@ -142,7 +146,7 @@ def fetch_history(
 ) -> list[models.History]:
 
     _validate_accessible_wishlist(db, wishlist_id, current_user)
-    db_comment = _get_accessible_comment(db, comment_id)
+    db_comment = _get_accessible_comment(db, wishlist_id, comment_id)
 
     return (
         db.query(models.History)
