@@ -109,3 +109,27 @@ class WishStockResponse(BaseModel):
     purchase_price: int
     holding_num: int
     return_rate: float
+
+
+class History(BaseModel):
+    content: str
+    created_at: str
+
+    class Config:
+        orm_mode = True
+
+
+class Comment(BaseModel):
+    id: int
+    user_id: int
+    wishlist_id: int
+    content: str
+    is_reply: bool
+    parent_id: Optional[int]
+
+    class Config:
+        orm_mode = True
+
+
+class CommentCreate(BaseModel):
+    content: str

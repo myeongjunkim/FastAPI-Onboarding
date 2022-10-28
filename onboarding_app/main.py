@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from onboarding_app import exceptions
 from onboarding_app.database import Base, engine
+from onboarding_app.endpoints.comment import comment_router
 from onboarding_app.endpoints.user import user_router
 from onboarding_app.endpoints.wishlist import wishlist_router
 
@@ -11,6 +12,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.include_router(user_router)
 app.include_router(wishlist_router)
+app.include_router(comment_router)
 
 
 @app.exception_handler(exceptions.CredentialsError)
