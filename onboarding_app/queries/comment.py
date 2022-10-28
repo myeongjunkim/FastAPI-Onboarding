@@ -94,20 +94,20 @@ def update_comment(
     comment_id: int,
 ) -> models.Comment:
 
-    comment = get_comment(db, wishlist_id, comment_id, current_user)
-    if comment.user_id != current_user.id:
+    db_comment = get_comment(db, wishlist_id, comment_id, current_user)
+    if db_comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
-    comment.content = comment.content
+    db_comment.content = comment.content
 
     created_history = models.History(
-        comment_id=comment.id,
+        comment_id=db_comment.id,
         content=comment.content,
     )
 
     db.add(created_history)
     db.commit()
 
-    return comment
+    return db_comment
 
 
 def delete_comment(
