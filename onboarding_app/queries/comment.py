@@ -7,7 +7,7 @@ from onboarding_app import exceptions, models, schemas
 
 def get_accessible_wishlist(
     db: Session, wishlist_id: int, current_user: schemas.User
-) -> None:
+) -> models.Wishlist:
     wishlist = (
         db.query(models.Wishlist).filter(models.Wishlist.id == wishlist_id).first()
     )
@@ -16,21 +16,6 @@ def get_accessible_wishlist(
     if not wishlist.is_open and wishlist.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
     return wishlist
-
-
-def get_accessible_comment(
-    db: Session, wishlist_id: int, comment_id: int
-) -> models.Comment:
-    comment = (
-        db.query(models.Comment)
-        .filter(
-            models.Comment.wishlist_id == wishlist_id, models.Comment.id == comment_id
-        )
-        .first()
-    )
-    if not comment:
-        raise exceptions.DataDoesNotExistError
-    return comment
 
 
 def create_comment(
@@ -42,10 +27,10 @@ def create_comment(
     is_reply: bool = False,
 ) -> models.Comment:
 
-    get_accessible_wishlist(db, wishlist_id, current_user)
+    wishlist = get_accessible_wishlist(db, wishlist_id, current_user)
     created_comment = models.Comment(
         user_id=current_user.id,
-        wishlist_id=wishlist_id,
+        wishlist_id=wishlist.id,
         content=comment.content,
         parent_id=parent_id,
         is_reply=is_reply,
@@ -72,10 +57,10 @@ def fetch_comments(
     limit: int,
     offset: int,
 ) -> list[models.Comment]:
-    get_accessible_wishlist(db, wishlist_id, current_user)
+    wishlist = get_accessible_wishlist(db, wishlist_id, current_user)
     return (
         db.query(models.Comment)
-        .filter(models.Comment.wishlist_id == wishlist_id)
+        .filter(models.Comment.wishlist_id == wishlist.id)
         .limit(limit)
         .offset(offset)
         .all()
@@ -88,10 +73,17 @@ def get_comment(
     comment_id: int,
     current_user: schemas.User,
 ) -> models.Comment:
-    get_accessible_wishlist(db, wishlist_id, current_user)
-    db_comment = get_accessible_comment(db, wishlist_id, comment_id)
-
-    return db_comment
+    wishlist = get_accessible_wishlist(db, wishlist_id, current_user)
+    comment = (
+        db.query(models.Comment)
+        .filter(
+            models.Comment.wishlist_id == wishlist.id, models.Comment.id == comment_id
+        )
+        .first()
+    )
+    if not comment:
+        raise exceptions.DataDoesNotExistError
+    return comment
 
 
 def update_comment(
@@ -102,22 +94,20 @@ def update_comment(
     comment_id: int,
 ) -> models.Comment:
 
-    get_accessible_wishlist(db, wishlist_id, current_user)
-    db_comment = get_accessible_comment(db, wishlist_id, comment_id)
-
-    if db_comment.user_id != current_user.id:
+    comment = get_comment(db, wishlist_id, comment_id, current_user)
+    if comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
-    db_comment.content = comment.content
+    comment.content = comment.content
 
     created_history = models.History(
-        comment_id=db_comment.id,
+        comment_id=comment.id,
         content=comment.content,
     )
 
     db.add(created_history)
     db.commit()
 
-    return db_comment
+    return comment
 
 
 def delete_comment(
@@ -126,12 +116,10 @@ def delete_comment(
     wishlist_id: int,
     comment_id: int,
 ) -> None:
-
-    get_accessible_wishlist(db, wishlist_id, current_user)
-    db_comment = get_accessible_comment(db, wishlist_id, comment_id)
-    if db_comment.user_id != current_user.id:
+    comment = get_comment(db, wishlist_id, comment_id, current_user)
+    if comment.user_id != current_user.id:
         raise exceptions.PermissionDeniedError
-    db.delete(db_comment)
+    db.delete(comment)
     db.commit()
     return None
 
@@ -140,23 +128,19 @@ def fetch_replies(
     db: Session, wishlist_id: int, parent_id: int, current_user: schemas.User
 ) -> list[models.Comment]:
 
-    get_accessible_wishlist(db, wishlist_id, current_user)
-    parent_comment = get_accessible_comment(db, wishlist_id, parent_id)
-
-    return parent_comment.replies
+    parent_comment = get_comment(db, wishlist_id, parent_id, current_user)
+    return parent_comment.repliess
 
 
 def fetch_history(
     db: Session, wishlist_id: int, comment_id: int, current_user: schemas.User
 ) -> list[models.History]:
 
-    get_accessible_wishlist(db, wishlist_id, current_user)
-    db_comment = get_accessible_comment(db, wishlist_id, comment_id)
-
+    comment = get_comment(db, wishlist_id, comment_id, current_user)
     return (
         db.query(models.History)
         .filter(
-            models.History.comment_id == db_comment.id,
+            models.History.comment_id == comment.id,
         )
         .order_by(models.History.created_at.desc())
         .all()
