@@ -129,7 +129,7 @@ def fetch_replies(
 ) -> list[models.Comment]:
 
     parent_comment = get_comment(db, wishlist_id, parent_id, current_user)
-    return parent_comment.repliess
+    return parent_comment.replies
 
 
 def fetch_history(
