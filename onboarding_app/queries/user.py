@@ -35,7 +35,6 @@ def create_user(
         )
         db.add(db_user)
         db.commit()
-        db.refresh(db_user)
         return db_user
     except IntegrityError:
         raise exceptions.DuplicatedError

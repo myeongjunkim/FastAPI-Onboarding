@@ -1,5 +1,5 @@
 from onboarding_app.queries import user as user_query
-from onboarding_app.tests.conftest import client, TestingSessionLocal
+from onboarding_app.tests.conftest import client
 from onboarding_app.tests.utils import obtain_token_admin, obtain_token_reg
 
 client.deauthenticate()
@@ -59,13 +59,11 @@ def test_only_admin_can_fetch_users():
     assert response_users_by_reg1.status_code == 401
 
 
-def test_only_admin_can_get_user():
+def test_only_admin_can_get_user(db_session):
     # Given
     admin_token = obtain_token_admin()
     user_token = obtain_token_reg("reg1")
-    check_user = user_query.get_user_by_username(
-        db=TestingSessionLocal(), username="reg1"
-    )
+    check_user = user_query.get_user_by_username(db=db_session, username="reg1")
 
     # When
     response_by_admin = client.get(

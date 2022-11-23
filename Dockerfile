@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM --platform=linux/amd64 python:3.10.3-slim 
 ENV PYTHONHASHSEED=random \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -19,9 +19,9 @@ RUN cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
 
 WORKDIR $WORKDIR
 
+COPY ./poetry.lock ./pyproject.toml ./
+RUN poetry install
 COPY . .
-
-RUN poetry config virtualenvs.create false && poetry install
 
 EXPOSE 8000
 

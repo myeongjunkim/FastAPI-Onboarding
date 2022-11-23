@@ -1,0 +1,1 @@
+docker exec -it portfolio-toy-project-mjkim-onboarding-app-1 /bin/bash

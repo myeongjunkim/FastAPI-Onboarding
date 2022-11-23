@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends
-from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -12,10 +11,9 @@ from onboarding_app.queries import user as user_query
 user_router = APIRouter(tags=["user"])
 
 
-@user_router.post("/users/signup", response_model=schemas.UserResponse)
+@user_router.post("/users/signup", response_model=schemas.User)
 def signup(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
-    res = user_query.create_user(db=db, user=user)
-    return jsonable_encoder(res)
+    return user_query.create_user(db=db, user=user)
 
 
 @user_router.get("/users", response_model=list[schemas.User])

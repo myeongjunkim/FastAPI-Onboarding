@@ -2,8 +2,6 @@ version: "3"
 services:
   onboarding-app:
     build: .
-    ports:
-      - 8001:8000
     env_file:
       - ./.env
     depends_on:
@@ -14,14 +12,14 @@ services:
       - .:/code
       - python-packages:/usr/local/lib/python3.10/site-packages
       - python-bin:/usr/local/bin
-    command: /bin/bash scripts/run_server.sh
+    command: /bin/bash pytest
 
   db:
     image: postgres:latest
     volumes:
-      - db-volme:/var/lib/postgresql/data
-    ports:
-      - 5431:5432
+      - test-db-volme:/var/lib/postgresql/data
+    env_file:
+      - ./.env
     networks:
       - shared-network
     environment:
@@ -35,6 +33,6 @@ networks:
     driver: bridge
 
 volumes:
-  db-volme:
+  test-db-volme:
   python-packages:
   python-bin:

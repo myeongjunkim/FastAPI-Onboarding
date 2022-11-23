@@ -2,16 +2,15 @@ import pytest
 
 from onboarding_app import models, schemas
 from onboarding_app.queries import user as user_query, wishlist as wishlist_query
-from onboarding_app.tests.conftest import client, TestingSessionLocal
+from onboarding_app.tests.conftest import client
 from onboarding_app.tests.utils import get_wishlist_by_name, obtain_token_reg
 
-db = TestingSessionLocal()
 client.authenticate("reg1")
 
 
-def test_wishlists_create_success():
+def test_wishlists_create_success(db_session):
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1 = user_query.get_user_by_username(db=db_session, username="reg1")
 
     # When
     wishlist_response = client.post(
@@ -29,13 +28,13 @@ def test_wishlists_create_success():
     assert wishlist_response.json()["user_id"] == reg1.id
 
 
-def test_wishlists_fetch_success():
+def test_wishlists_fetch_success(db_session):
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1 = user_query.get_user_by_username(db=db_session, username="reg1")
 
     for i in range(10):
         wishlist_query.create_wishlist(
-            db=db,
+            db=db_session,
             current_user=reg1,
             wishlist=schemas.WishlistCreate(
                 name=f"wishlist{i}",
@@ -53,12 +52,12 @@ def test_wishlists_fetch_success():
     assert len(wishlists_response.json()) == 10
 
 
-def test_wishlists_get_success():
+def test_wishlists_get_success(db_session):
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1 = user_query.get_user_by_username(db=db_session, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
-        db=db,
+        db=db_session,
         current_user=reg1,
         wishlist=schemas.WishlistCreate(
             name="wishlist1",
@@ -77,13 +76,13 @@ def test_wishlists_get_success():
     assert wishlist_response_by_reg1.json()["user_id"] == reg1.id
 
 
-def test_wishlists_get_fail_with_other_user_token():
+def test_wishlists_get_fail_with_other_user_token(db_session):
     # Given
     other_user_token = obtain_token_reg("reg2")
 
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1 = user_query.get_user_by_username(db=db_session, username="reg1")
     wishlist = wishlist_query.create_wishlist(
-        db=db,
+        db=db_session,
         current_user=reg1,
         wishlist=schemas.WishlistCreate(
             name="wishlist1",
@@ -101,12 +100,12 @@ def test_wishlists_get_fail_with_other_user_token():
     assert wishlist_response_by_other_user.status_code == 401
 
 
-def test_wishlists_update_success():
+def test_wishlists_update_success(db_session):
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1 = user_query.get_user_by_username(db=db_session, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
-        db=db,
+        db=db_session,
         current_user=reg1,
         wishlist=schemas.WishlistCreate(
             name="wishlist1",
@@ -132,12 +131,12 @@ def test_wishlists_update_success():
     )
 
 
-def test_wishlists_delete_success():
+def test_wishlists_delete_success(db_session):
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1 = user_query.get_user_by_username(db=db_session, username="reg1")
 
     wishlist = wishlist_query.create_wishlist(
-        db=db,
+        db=db_session,
         current_user=reg1,
         wishlist=schemas.WishlistCreate(
             name="wishlist1", description="wishlist1 description"
@@ -149,7 +148,7 @@ def test_wishlists_delete_success():
         f"/wishlists/{wishlist.id}",
     )
 
-    wishlist_query_res = db.query(models.Wishlist).filter(
+    wishlist_query_res = db_session.query(models.Wishlist).filter(
         models.Wishlist.id == wishlist.id
     )
 
@@ -158,14 +157,14 @@ def test_wishlists_delete_success():
     assert wishlist_query_res.first() is None
 
 
-def test_wishlists_update_and_delete_fail_with_other_user_token():
+def test_wishlists_update_and_delete_fail_with_other_user_token(db_session):
 
     # Given
     other_user_token = obtain_token_reg("reg2")
 
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1 = user_query.get_user_by_username(db=db_session, username="reg1")
     wishlist = wishlist_query.create_wishlist(
-        db=db,
+        db=db_session,
         current_user=reg1,
         wishlist=schemas.WishlistCreate(
             name="wishlist1", description="wishlist1 description"
@@ -201,13 +200,13 @@ def test_wishlists_update_and_delete_fail_with_other_user_token():
         (3, 3),  # Case 3. 같은 순서로 정렬하는 경우
     ),
 )
-def test_change_wishlist_order(origin_order: int, hope_order: int):
+def test_change_wishlist_order(db_session, origin_order: int, hope_order: int):
     # Given
-    reg1 = user_query.get_user_by_username(db=db, username="reg1")
+    reg1 = user_query.get_user_by_username(db=db_session, username="reg1")
 
     for i in range(10):
         wishlist_query.create_wishlist(
-            db=db,
+            db=db_session,
             current_user=reg1,
             wishlist=schemas.WishlistCreate(
                 name=f"wishlist{i}",
@@ -215,7 +214,7 @@ def test_change_wishlist_order(origin_order: int, hope_order: int):
             ),
         )
     target_wishlist = get_wishlist_by_name(
-        db=db, name=f"wishlist{origin_order}", current_user=reg1
+        db=db_session, name=f"wishlist{origin_order}", current_user=reg1
     )
 
     # When
@@ -229,7 +228,7 @@ def test_change_wishlist_order(origin_order: int, hope_order: int):
     assert wishlist_order_response.json()["order_num"] == hope_order
 
     wishlists_ordered_by_order_num = (
-        db.query(models.Wishlist)
+        db_session.query(models.Wishlist)
         .filter(
             models.Wishlist.user_id == reg1.id,
         )

@@ -2,36 +2,35 @@ import pytest
 
 from onboarding_app import models, schemas
 from onboarding_app.queries import user as user_query, wishlist as wishlist_query
-from onboarding_app.tests.conftest import client, TestingSessionLocal
+from onboarding_app.tests.conftest import client
 from onboarding_app.tests.utils import get_wishlist_by_name
 
-db = TestingSessionLocal()
 client.authenticate("reg1")
 
 
 @pytest.fixture(autouse=True)
-def create_dumy_data_to_fakedb():
-    _create_stocks()
-    _create_wishlists()
-    _add_wishstock_in_wishlist()
+def create_dumy_data_to_fakedb(db_session):
+    _create_stocks(db_session)
+    _create_wishlists(db_session)
+    _add_wishstock_in_wishlist(db_session)
 
 
-def _create_stocks():
-    for i in range(10):
-        stock = models.Stock(
+def _create_stocks(db_session):
+    stock_list = [
+        models.Stock(
             name=f"stock{i}",
             code=f"code{i}",
             price=(i + 1) * 1000,
             market="KOSPI",
         )
-        db.add(stock)
-        db.commit()
-        db.refresh(stock)
+        for i in range(10)
+    ]
+    db_session.add_all(stock_list)
+    db_session.commit()
 
 
-def _create_wishlists():
-
-    reg = user_query.get_user_by_username(db=db, username="reg1")
+def _create_wishlists(db_session):
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
     wishlist = schemas.WishlistCreate(
         name="wishlist1",
         description="wishlist1 description",
@@ -40,19 +39,19 @@ def _create_wishlists():
         name="nothing_in_wishlist",
         description="wishlist1 description",
     )
-    wishlist_query.create_wishlist(db=db, current_user=reg, wishlist=wishlist)
+    wishlist_query.create_wishlist(db=db_session, current_user=reg, wishlist=wishlist)
     wishlist_query.create_wishlist(
-        db=db, current_user=reg, wishlist=nothing_in_wishlist
+        db=db_session, current_user=reg, wishlist=nothing_in_wishlist
     )
 
 
-def _add_wishstock_in_wishlist():
-    reg = user_query.get_user_by_username(db=db, username="reg1")
+def _add_wishstock_in_wishlist(db_session):
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
 
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
+    wishlist = get_wishlist_by_name(db=db_session, current_user=reg, name="wishlist1")
     for i in range(10):
         wishlist_query.add_stock_to_wishlist(
-            db=db,
+            db=db_session,
             current_user=reg,
             wishlist_id=wishlist.id,
             wishstock=schemas.WishStockCreate(
@@ -63,12 +62,14 @@ def _add_wishstock_in_wishlist():
         )
 
 
-def test_add_stock_to_wishlist():
+def test_add_stock_to_wishlist(db_session):
     # Given
-    reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="nothing_in_wishlist")
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
+    wishlist = get_wishlist_by_name(
+        db=db_session, current_user=reg, name="nothing_in_wishlist"
+    )
 
-    stock = db.query(models.Stock).first()
+    stock = db_session.query(models.Stock).first()
 
     # When
     stock_response = client.post(
@@ -81,10 +82,12 @@ def test_add_stock_to_wishlist():
     assert stock_response.json()["stock"]["name"] == stock.name
 
 
-def test_cannot_add_wrong_stock_to_wishlist():
+def test_cannot_add_wrong_stock_to_wishlist(db_session):
     # Given
-    reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="nothing_in_wishlist")
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
+    wishlist = get_wishlist_by_name(
+        db=db_session, current_user=reg, name="nothing_in_wishlist"
+    )
 
     wrong_stock_id = 500000
     # When
@@ -101,10 +104,10 @@ def test_cannot_add_wrong_stock_to_wishlist():
     assert stock_response.status_code == 404
 
 
-def test_fetch_stock_in_wishlist():
+def test_fetch_stock_in_wishlist(db_session):
     # Given
-    reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
+    wishlist = get_wishlist_by_name(db=db_session, current_user=reg, name="wishlist1")
 
     # When
     stock_response = client.get(
@@ -116,12 +119,12 @@ def test_fetch_stock_in_wishlist():
     assert len(stock_response.json()) == 10
 
 
-def test_get_stock_in_wishlist():
+def test_get_stock_in_wishlist(db_session):
     # Given
-    reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
+    wishlist = get_wishlist_by_name(db=db_session, current_user=reg, name="wishlist1")
 
-    stock = db.query(models.Stock).first()
+    stock = db_session.query(models.Stock).first()
 
     # When
     stock_response = client.get(
@@ -133,12 +136,12 @@ def test_get_stock_in_wishlist():
     assert stock_response.json()["stock"]["name"] == stock.name
 
 
-def test_update_stock_in_wishlist():
+def test_update_stock_in_wishlist(db_session):
     # Given
-    reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
+    wishlist = get_wishlist_by_name(db=db_session, current_user=reg, name="wishlist1")
 
-    stock = db.query(models.Stock).first()
+    stock = db_session.query(models.Stock).first()
 
     # When
     stock_response = client.put(
@@ -152,13 +155,13 @@ def test_update_stock_in_wishlist():
     assert stock_response.json()["holding_num"] == 100
 
 
-def test_delete_stock_in_wishlist():
+def test_delete_stock_in_wishlist(db_session):
     # Given
 
-    reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
+    wishlist = get_wishlist_by_name(db=db_session, current_user=reg, name="wishlist1")
 
-    stock = db.query(models.Stock).first()
+    stock = db_session.query(models.Stock).first()
 
     # When
     stock_response = client.delete(
@@ -166,7 +169,7 @@ def test_delete_stock_in_wishlist():
     )
 
     # Then
-    deleted_wishstock_query_res = db.query(models.WishlistXstock).filter(
+    deleted_wishstock_query_res = db_session.query(models.WishlistXstock).filter(
         models.WishlistXstock.wishlist_id == wishlist.id,
         models.WishlistXstock.stock_id == stock.id,
     )
@@ -184,15 +187,15 @@ def test_delete_stock_in_wishlist():
         (3, 3),  # Case 3. 같은 순서로 정렬하는 경우
     ),
 )
-def test_change_stock_order(origin_order: int, hope_order: int):
+def test_change_stock_order(db_session, origin_order: int, hope_order: int):
     # Given
-    reg = user_query.get_user_by_username(db=db, username="reg1")
-    wishlist = get_wishlist_by_name(db=db, current_user=reg, name="wishlist1")
+    reg = user_query.get_user_by_username(db=db_session, username="reg1")
+    wishlist = get_wishlist_by_name(db=db_session, current_user=reg, name="wishlist1")
 
-    stocks = db.query(models.Stock).limit(10).offset(0).all()
+    stocks = db_session.query(models.Stock).limit(10).offset(0).all()
 
     target_wishstock = (
-        db.query(models.WishlistXstock)
+        db_session.query(models.WishlistXstock)
         .filter(
             models.WishlistXstock.wishlist_id == wishlist.id,
             models.WishlistXstock.order_num == origin_order,
@@ -211,7 +214,7 @@ def test_change_stock_order(origin_order: int, hope_order: int):
     assert stock_order_response.json()["order_num"] == hope_order
 
     wishstocks_ordered_by_order_num = (
-        db.query(models.WishlistXstock)
+        db_session.query(models.WishlistXstock)
         .filter(
             models.WishlistXstock.wishlist_id == wishlist.id,
         )

@@ -22,6 +22,7 @@ def create_wishlist(
         current_user=current_user,
         wishlist=wishlist,
     )
+
     return jsonable_encoder(db_wishlist)
 
 

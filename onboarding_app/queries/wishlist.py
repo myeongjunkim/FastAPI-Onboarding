@@ -32,10 +32,9 @@ def create_wishlist(
         )
         db.add(created_wishlist)
         db.commit()
-        db.refresh(created_wishlist)
     except IntegrityError:
         raise exceptions.DuplicatedError
-    return created_wishlist
+    return get_wishlist(db, created_wishlist.id, current_user)
 
 
 def fetch_wishlists(
@@ -88,7 +87,6 @@ def update_wishlist(
         wishlist_query_res.update(wishlist.dict(exclude_unset=True))
         wishlist_query_res.first().updated_at = datetime.utcnow()
         db.commit()
-        db.refresh(wishlist_query_res.first())
     except IntegrityError:
         raise exceptions.DuplicatedError
     return wishlist_query_res.first()
@@ -198,7 +196,6 @@ def add_stock_to_wishlist(
         )
         db.add(created_wishstock)
         db.commit()
-        db.refresh(created_wishstock)
     except ZeroDivisionError:
         raise exceptions.InvalidQueryError
     except IntegrityError:
@@ -287,7 +284,6 @@ def update_stock_in_wishlist(
 
     wishstock_query_res.update(wishstock.dict(exclude_unset=True))
     db.commit()
-    db.refresh(wishstock_query_res.first())
 
     db_wishstock = wishstock_query_res.first()
     db_stock = db.query(models.Stock).filter(models.Stock.id == stock_id).first()

@@ -1,20 +1,11 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from onboarding_app import schemas
-from onboarding_app.database import Base, get_db
+from onboarding_app.database import Base, engine, SessionLocal
 from onboarding_app.main import app
 from onboarding_app.queries import user as user_query
 from onboarding_app.tests.utils import obtain_token_reg
-
-TEST_DATABASE_URL = "sqlite:///./onboarding_app/fake.db"
-
-
-engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-Base.metadata.create_all(bind=engine)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class TestClientWithAuth(TestClient):
@@ -26,28 +17,28 @@ class TestClientWithAuth(TestClient):
         self.headers["Authorization"] = None
 
 
-def fake_db():
+client = TestClientWithAuth(app)
+
+
+@pytest.fixture
+def db_session():
     try:
-        db = TestingSessionLocal()
+        db = SessionLocal()
         yield db
     finally:
         db.close()
 
 
-app.dependency_overrides[get_db] = fake_db
-client = TestClientWithAuth(app)
-
-
 @pytest.fixture(autouse=True)
 def clear_db():
-    Base.metadata.create_all(bind=engine)
-    yield engine
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine, checkfirst=True)
+    yield
+    Base.metadata.drop_all(bind=engine, checkfirst=False)
     engine.dispose()
 
 
 @pytest.fixture(autouse=True)
-def create_dumy_user():
+def create_dumy_user(db_session):
     admin = schemas.UserCreate(
         username="admin",
         email="admin@example.com",
@@ -69,6 +60,6 @@ def create_dumy_user():
         password2="reg2",
     )
 
-    user_query.create_user(db=TestingSessionLocal(), user=admin, is_admin=True)
-    user_query.create_user(db=TestingSessionLocal(), user=reg1)
-    user_query.create_user(db=TestingSessionLocal(), user=reg2)
+    user_query.create_user(db=db_session, user=admin, is_admin=True)
+    user_query.create_user(db=db_session, user=reg1)
+    user_query.create_user(db=db_session, user=reg2)
