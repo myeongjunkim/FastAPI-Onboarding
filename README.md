@@ -1,2 +1,3 @@
-# portfolio-toy-project-mjkim
-백엔드 온보딩 프로젝트
+# 소개
+
+알파스퀘어의 관심목록 기능을 FastAPI 로 구현합니다.
