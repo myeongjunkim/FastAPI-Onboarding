@@ -7,6 +7,10 @@
 [Notion 바로가기](https://mmyeong.notion.site/FastAPI-Onboarding-1327a12fc9774d258dd7a1a8a217e371)
 
 
+## ERD
+![image](https://github.com/myeongjunkim/FastAPI-Onboarding/assets/82504981/758437ba-f644-473b-9da4-7c77431eff0b)
+
+
 ## Swagger
 
 ![image](https://github.com/myeongjunkim/FastAPI-Onboarding/assets/82504981/57c5692a-f028-40f2-b721-423e1cf5fb1d)
